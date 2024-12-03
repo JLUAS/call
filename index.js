@@ -5,11 +5,12 @@ const app = express();
 const port = 3000;
 
 // Tu SID de cuenta y Token de autenticación de Twilio
-const accountSid = 'AC3622250a19f61ed3afa29a5597bebfa2';
-const authToken = '4b65c19cf8e3b81ec5de988e8e4906d4';
-const twilioPhoneNumber = 'TU_NUMERO_DE_TWILIO';
+require('dotenv').config();
 
-// Inicializa el cliente de Twilio
+const twilioPhoneNumber = process.env.TWILIO_PHONE;
+const accountSid = process.env.TWILIO_ACCOUNT_SID;
+const authToken = process.env.TWILIO_AUTH_TOKEN;
+
 const client = new twilio(accountSid, authToken);
 
 // Ruta para realizar la llamada saliente
@@ -40,7 +41,7 @@ app.post('/voice', (req, res) => {
 // Hacer llamadas periódicas cada 60 segundos
 setInterval(() => {
   client.calls.create({
-    to: '+1234567890',  // Número al que deseas llamar
+    to: '+528662367673',  // Número al que deseas llamar
     from: twilioPhoneNumber,  // Tu número de Twilio
     url: 'http://<tu-url-ngrok>/voice',  // URL que Twilio usará para obtener las instrucciones (usando ngrok)
   })
