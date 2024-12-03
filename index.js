@@ -10,6 +10,7 @@ require('dotenv').config();
 const twilioPhoneNumber = process.env.TWILIO_PHONE;
 const accountSid = process.env.TWILIO_ACCOUNT_SID;
 const authToken = process.env.TWILIO_AUTH_TOKEN;
+const apiKey = process.env.OPENAI_API_KEY;
 const VoiceResponse = twilio.twiml.VoiceResponse; // Twilio VoiceResponse
 
 const client = new twilio(accountSid, authToken);
@@ -23,7 +24,7 @@ app.post('/process-speech', async (req, res) => {
   const { Configuration, OpenAIApi } = openai;
 
   const configuration = new Configuration({
-    apiKey: process.env.OPENAI_API_KEY, // Clave de tu API de OpenAI
+    apiKey: apiKey,
   });
 
   const openaiClient = new OpenAIApi(configuration);
