@@ -16,7 +16,7 @@ const client = new twilio(accountSid, authToken);
 // Ruta para realizar la llamada saliente
 app.get('/call', (req, res) => {
   client.calls.create({
-    to: '+1234567890',  // Número al que deseas llamar
+    to: '+1528662367673',  // Número al que deseas llamar
     from: twilioPhoneNumber,  // Tu número de Twilio
     url: 'http://demo.twilio.com/docs/voice.xml',  // URL que Twilio usará para obtener las instrucciones
   })
