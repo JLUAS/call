@@ -124,7 +124,7 @@ setInterval(() => {
   .catch(err => {
     console.error('Error al hacer la llamada:', err);
   });
-}, 10000);
+}, 30000);
 
 // Inicia el servidor
 app.listen(port, () => {
