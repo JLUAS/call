@@ -1,70 +1,127 @@
-// // Importa las librerías necesarias
-// const express = require('express');
-// const twilio = require('twilio');
-// const app = express();
-// const port = 3000;
+// Importa las librerías necesarias
+const express = require('express');
+const twilio = require('twilio');
+const app = express();
+const port = 3000;
 
-// // Tu SID de cuenta y Token de autenticación de Twilio
-// require('dotenv').config();
+// Tu SID de cuenta y Token de autenticación de Twilio
+require('dotenv').config();
 
-// const twilioPhoneNumber = process.env.TWILIO_PHONE;
-// const accountSid = process.env.TWILIO_ACCOUNT_SID;
-// const authToken = process.env.TWILIO_AUTH_TOKEN;
-// const VoiceResponse = twilio.twiml.VoiceResponse; // Twilio VoiceResponse
+const twilioPhoneNumber = process.env.TWILIO_PHONE;
+const accountSid = process.env.TWILIO_ACCOUNT_SID;
+const authToken = process.env.TWILIO_AUTH_TOKEN;
+const VoiceResponse = twilio.twiml.VoiceResponse; // Twilio VoiceResponse
 
-// const client = new twilio(accountSid, authToken);
+const client = new twilio(accountSid, authToken);
 
-// // Ruta para realizar la llamada saliente
-// app.get('/call', (req, res) => {
-//   client.calls.create({
-//     to: '+528662367673',  // Número al que deseas llamar
-//     from: twilioPhoneNumber,  // Tu número de Twilio
-//     url: 'http://demo.twilio.com/docs/voice.xml',  // URL que Twilio usará para obtener las instrucciones
-//   })
-//   .then(call => {
-//     console.log(`Llamada realizada con SID: ${call.sid}`);
-//     res.send(`Llamada realizada: ${call.sid}`);
-//   })
-//   .catch(err => {
-//     console.error('Error al hacer la llamada:', err);
-//     res.status(500).send('Error al hacer la llamada');
-//   });
-// });
+app.post('/process-speech', async (req, res) => {
+  const userSpeech = req.body.SpeechResult; // Entrada del usuario transcrita por Twilio
+  console.log(`Usuario dijo: ${userSpeech}`);
 
-// // Ruta para proporcionar instrucciones de llamada a Twilio
-// app.post('/voice', (req, res) => {
-//   const response = new VoiceResponse();
-  
-//   // Configura las instrucciones que deseas dar a la llamada
-//   response.say({
-//     voice: 'alice',  // Voz femenina predeterminada
-//     language: 'es-MX' // Español de México
-//   }, 'Hola, esta es una llamada de prueba. ¿Cómo puedo ayudarte hoy?');
+  // Llamar a ChatGPT para obtener una respuesta
+  const openai = require('openai');
+  const { Configuration, OpenAIApi } = openai;
 
-//   response.pause({ length: 2 }); // Pausa de 2 segundos
-//   response.say('Por favor, pulsa cualquier tecla para continuar.');
+  const configuration = new Configuration({
+    apiKey: process.env.OPENAI_API_KEY, // Clave de tu API de OpenAI
+  });
 
-//   // Convierte el objeto de respuesta en XML y envíalo
-//   res.type('text/xml');
-//   res.send(response.toString());
-// });
+  const openaiClient = new OpenAIApi(configuration);
 
-// // Hacer llamadas periódicas cada 60 segundos
-// setInterval(() => {
-//   client.calls.create({
-//     to: '+528662367673',  // Número al que deseas llamar
-//     from: twilioPhoneNumber,  // Tu número de Twilio
-//     url: 'https://call-t0fi.onrender.com/voice',  // URL que Twilio usará para obtener las instrucciones
-//   })
-//   .then(call => {
-//     console.log(`Llamada realizada con SID: ${call.sid}`);
-//   })
-//   .catch(err => {
-//     console.error('Error al hacer la llamada:', err);
-//   });
-// }, 10000);
+  try {
+    const gptResponse = await openaiClient.createChatCompletion({
+      model: 'gpt-4', // Modelo de ChatGPT
+      messages: [
+        { role: 'system', content: 'Eres un asistente virtual amable y profesional.' },
+        { role: 'user', content: userSpeech },
+      ],
+    });
 
-// // Inicia el servidor
-// app.listen(port, () => {
-//   console.log(`Servidor corriendo en http://localhost:${port}`);
-// });
+    const botResponse = gptResponse.data.choices[0].message.content;
+    console.log(`Respuesta de ChatGPT: ${botResponse}`);
+
+    // Responder al usuario en la llamada
+    const response = new VoiceResponse();
+    response.say({ voice: 'alice', language: 'es-MX' }, botResponse);
+
+    // Permitir más interacción
+    response.gather({
+      input: 'speech',
+      action: '/process-speech',
+      language: 'es-MX',
+      hints: 'soporte técnico, ventas, consulta',
+      timeout: 5, // Tiempo para esperar una respuesta en segundos
+    });
+    response.say('No escuché nada. Por favor, repite tu solicitud.');
+    
+
+    res.type('text/xml');
+    res.send(response.toString());
+  } catch (error) {
+    console.error('Error al interactuar con ChatGPT:', error);
+
+    // Respuesta de error
+    const response = new VoiceResponse();
+    response.say({ voice: 'alice', language: 'es-MX' }, 'Lo siento, hubo un problema. Por favor, intenta de nuevo.');
+    res.type('text/xml');
+    res.send(response.toString());
+  }
+});
+
+
+// Ruta para realizar la llamada saliente
+app.get('/call', (req, res) => {
+  client.calls.create({
+    to: '+528662367673',  // Número al que deseas llamar
+    from: twilioPhoneNumber,  // Tu número de Twilio
+    url: 'https://call-t0fi.onrender.com/voice',  // URL que Twilio usará para obtener las instrucciones
+  })
+  .then(call => {
+    console.log(`Llamada realizada con SID: ${call.sid}`);
+    res.send(`Llamada realizada: ${call.sid}`);
+  })
+  .catch(err => {
+    console.error('Error al hacer la llamada:', err);
+    res.status(500).send('Error al hacer la llamada');
+  });
+});
+
+
+app.post('/voice', (req, res) => {
+  const response = new VoiceResponse();
+
+  // Instrucciones iniciales
+  response.say({ voice: 'alice', language: 'es-MX' }, 'Hola, soy tu asistente virtual. ¿En qué puedo ayudarte?');
+
+  // Captura la respuesta del usuario con reconocimiento de voz
+  response.gather({
+    input: 'speech',
+    action: '/process-speech',  // Endpoint para procesar la entrada del usuario
+    language: 'es-MX',
+    hints: 'soporte técnico, ventas, consulta',
+  });
+
+  res.type('text/xml');
+  res.send(response.toString());
+});
+
+
+// Hacer llamadas periódicas cada 60 segundos
+setInterval(() => {
+  client.calls.create({
+    to: '+528662367673',  // Número al que deseas llamar
+    from: twilioPhoneNumber,  // Tu número de Twilio
+    url: 'https://call-t0fi.onrender.com/voice',  // URL que Twilio usará para obtener las instrucciones
+  })
+  .then(call => {
+    console.log(`Llamada realizada con SID: ${call.sid}`);
+  })
+  .catch(err => {
+    console.error('Error al hacer la llamada:', err);
+  });
+}, 10000);
+
+// Inicia el servidor
+app.listen(port, () => {
+  console.log(`Servidor corriendo en http://localhost:${port}`);
+});
