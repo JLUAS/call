@@ -23,7 +23,7 @@ const { OpenAI } = require('openai'); // Importar correctamente la clase OpenAI
 
 // Inicializar el cliente OpenAI con la API key
 const openai = new OpenAI({
-  apiKey: apiKey,
+  apiKey: apiKey
 });
 
 app.post('/process-speech', async (req, res) => {
