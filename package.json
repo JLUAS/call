@@ -1,0 +1,16 @@
+{
+  "name": "call",
+  "version": "1.0.0",
+  "description": "��#\u0000 \u0000c\u0000a\u0000l\u0000l\u0000\r\u0000 \u0000",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.21.1",
+    "twilio": "^5.3.6"
+  }
+}
