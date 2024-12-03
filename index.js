@@ -3,14 +3,14 @@ const express = require('express');
 const twilio = require('twilio');
 const app = express();
 const port = 3000;
-
+const dotenv = require('dotenv')
 // Tu SID de cuenta y Token de autenticación de Twilio
-require('dotenv').config();
+dotenv.config();
 
 const twilioPhoneNumber = process.env.TWILIO_PHONE;
 const accountSid = process.env.TWILIO_ACCOUNT_SID;
 const authToken = process.env.TWILIO_AUTH_TOKEN;
-const apiKey = process.env.OPENAI_API_KEY;
+const {apiKey} = process.env.OPENAI_API_KEY;
 const VoiceResponse = twilio.twiml.VoiceResponse; // Twilio VoiceResponse
 
 const client = new twilio(accountSid, authToken);
@@ -73,7 +73,7 @@ app.post('/process-speech', async (req, res) => {
 // Ruta para realizar la llamada saliente
 app.get('/call', (req, res) => {
   client.calls.create({
-    to: '+528662367673',  // Número al que deseas llamar
+    to: '+528662106638',  // Número al que deseas llamar
     from: twilioPhoneNumber,  // Tu número de Twilio
     url: 'https://call-t0fi.onrender.com/voice',  // URL que Twilio usará para obtener las instrucciones
   })
@@ -108,7 +108,7 @@ app.post('/voice', (req, res) => {
 // Hacer llamadas periódicas cada 60 segundos
 setInterval(() => {
   client.calls.create({
-    to: '+528662367673',  // Número al que deseas llamar
+    to: '+528662106638',  // Número al que deseas llamar
     from: twilioPhoneNumber,  // Tu número de Twilio
     url: 'https://call-t0fi.onrender.com/voice',  // URL que Twilio usará para obtener las instrucciones
   })
