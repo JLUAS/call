@@ -19,22 +19,20 @@ const bodyParser = require('body-parser');
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
+const { OpenAI } = require('openai'); // Importar correctamente la clase OpenAI
+
+// Inicializar el cliente OpenAI con la API key
+const openai = new OpenAI({
+  apiKey: apiKey,
+});
+
 app.post('/process-speech', async (req, res) => {
   const userSpeech = req.body.SpeechResult; // Entrada del usuario transcrita por Twilio
   console.log(`Usuario dijo: ${userSpeech}`);
 
-  // Llamar a ChatGPT para obtener una respuesta
-  const openai = require('openai');
-  const { Configuration, OpenAIApi } = openai;
-
-  const configuration = new Configuration({
-    apiKey: apiKey,
-  });
-
-  const openaiClient = new OpenAIApi(configuration);
-
   try {
-    const gptResponse = await openaiClient.createChatCompletion({
+    // Llamar a ChatGPT para obtener una respuesta
+    const gptResponse = await openai.chat.completions.create({
       model: 'gpt-4', // Modelo de ChatGPT
       messages: [
         { role: 'system', content: 'Eres un asistente virtual amable y profesional.' },
@@ -42,7 +40,7 @@ app.post('/process-speech', async (req, res) => {
       ],
     });
 
-    const botResponse = gptResponse.data.choices[0].message.content;
+    const botResponse = gptResponse.choices[0].message.content;
     console.log(`Respuesta de ChatGPT: ${botResponse}`);
 
     // Responder al usuario en la llamada
@@ -58,7 +56,6 @@ app.post('/process-speech', async (req, res) => {
       timeout: 5, // Tiempo para esperar una respuesta en segundos
     });
     response.say('No escuché nada. Por favor, repite tu solicitud.');
-    
 
     res.type('text/xml');
     res.send(response.toString());
@@ -72,7 +69,6 @@ app.post('/process-speech', async (req, res) => {
     res.send(response.toString());
   }
 });
-
 
 // Ruta para realizar la llamada saliente
 app.get('/call', (req, res) => {
@@ -91,7 +87,6 @@ app.get('/call', (req, res) => {
   });
 });
 
-
 app.post('/voice', (req, res) => {
   const response = new VoiceResponse();
 
@@ -109,7 +104,6 @@ app.post('/voice', (req, res) => {
   res.type('text/xml');
   res.send(response.toString());
 });
-
 
 // Hacer llamadas periódicas cada 60 segundos
 setInterval(() => {
