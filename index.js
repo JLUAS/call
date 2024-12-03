@@ -75,7 +75,7 @@ app.get('/call', (req, res) => {
   client.calls.create({
     to: '+528662367673',  // Número al que deseas llamar
     from: twilioPhoneNumber,  // Tu número de Twilio
-    url: 'https://6dfc-2806-2f0-4001-e539-e875-28bf-c5e1-1b9e.ngrok-free.app/voice',  // URL que Twilio usará para obtener las instrucciones
+    url: 'https://call-t0fi.onrender.com/voice',  // URL que Twilio usará para obtener las instrucciones
   })
   .then(call => {
     console.log(`Llamada realizada con SID: ${call.sid}`);
@@ -110,7 +110,7 @@ setInterval(() => {
   client.calls.create({
     to: '+528662367673',  // Número al que deseas llamar
     from: twilioPhoneNumber,  // Tu número de Twilio
-    url: 'https://6dfc-2806-2f0-4001-e539-e875-28bf-c5e1-1b9e.ngrok-free.app/voice',  // URL que Twilio usará para obtener las instrucciones
+    url: 'https://call-t0fi.onrender.com/voice',  // URL que Twilio usará para obtener las instrucciones
   })
   .then(call => {
     console.log(`Llamada realizada con SID: ${call.sid}`);
