@@ -33,7 +33,7 @@ app.post('/process-speech', async (req, res) => {
   try {
     // Llamar a ChatGPT para obtener una respuesta
     const gptResponse = await openai.chat.completions.create({
-      model: 'gpt-4', // Modelo de ChatGPT
+      model: 'gpt-4o-mini', // Modelo de ChatGPT
       messages: [
         { role: 'system', content: 'Eres un asistente virtual amable y profesional.' },
         { role: 'user', content: userSpeech },
