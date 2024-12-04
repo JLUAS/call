@@ -104,7 +104,7 @@ fastify.post('/process-speech', async (request, reply) => {
 });
 
 // Servidor en escucha
-const PORT = process.env.PORT || 3000;
+const PORT = 3000;
 fastify.listen({ port: PORT }, (err) => {
   if (err) {
     console.error('Error al iniciar el servidor:', err);
