@@ -15,7 +15,7 @@ const twilioPhoneNumber = process.env.TWILIO_PHONE;
 const accountSid = process.env.TWILIO_ACCOUNT_SID;
 const authToken = process.env.TWILIO_AUTH_TOKEN;
 const apiKey = process.env.OPENAI_API_KEY;
-const model = process.env.OPENAI_MODEL;
+const model = process.env.OPENAI_MODEL_ID;
 const VoiceResponse = twilio.twiml.VoiceResponse; // Twilio VoiceResponse
 
 const client = new twilio(accountSid, authToken);
@@ -44,22 +44,7 @@ app.post('/process-speech', async (req, res) => {
   let nombreUsuario = null;
 
   try {
-    // Analizar el contexto según lo que dijo el usuario
-    if (userSpeech.toLowerCase().includes('hola') || userSpeech.toLowerCase().includes('buenos días')) {
-      botResponse = 'Hola, soy tu asesor de ventas del banco Choche. ¿Cómo estás hoy?';
-      context.push({ role: 'assistant', content: botResponse });
-    } else if (userSpeech.toLowerCase().includes('mi nombre es')) {
-      nombreUsuario = userSpeech.split('mi nombre es')[1].trim(); // Extraer el nombre
-      botResponse = `¡Mucho gusto, ${nombreUsuario}! ¿En qué puedo ayudarte hoy?`;
-      context.push({ role: 'assistant', content: botResponse });
-    } else if (userSpeech.toLowerCase().includes('quiero comprar') || userSpeech.toLowerCase().includes('terminal')) {
-      botResponse = `Excelente decisión${nombreUsuario ? `, ${nombreUsuario}` : ''}. ¿Podrías proporcionarme tu correo electrónico para finalizar la compra?`;
-      context.push({ role: 'assistant', content: botResponse });
-    } else if (userSpeech.toLowerCase().includes('@')) {
-      const email = userSpeech.trim();
-      botResponse = `Perfecto${nombreUsuario ? `, ${nombreUsuario}` : ''}. Hemos registrado tu correo: ${email}. Un asesor se pondrá en contacto contigo pronto. ¿Algo más en lo que pueda ayudarte?`;
-      context.push({ role: 'assistant', content: botResponse });
-    } else {
+
       // Mantener el flujo natural de la conversación
       const gptResponse = await openai.chat.completions.create({
         model: model, // Reemplaza con tu ID de modelo fine-tuned
@@ -68,12 +53,10 @@ app.post('/process-speech', async (req, res) => {
           { role: 'user', content: userSpeech },
         ],
       });
-      
 
       botResponse = gptResponse.choices[0].message.content;
       context.push({ role: 'assistant', content: botResponse });
-    }
-
+    
     console.log(`Respuesta generada por ChatGPT: ${botResponse}`);
 
     // Responder al usuario con la respuesta generada
