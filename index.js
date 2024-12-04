@@ -31,21 +31,6 @@ const openai = new OpenAI({
   apiKey: apiKey
 });
 
-const uploadFile = async () => {
-  const response = await fetch('https://api.openai.com/v1/files', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${apiKey}`,
-    },
-    body: new FormData().append('file', fs.createReadStream(filePath)).append('purpose', 'fine-tune'),
-  });
-
-  const result = await response.json();
-  console.log(result);
-};
-
-uploadFile();
-
 
 app.post('/process-speech', async (req, res) => {
   const userSpeech = req.body.SpeechResult; // Entrada del usuario transcrita por Twilio
