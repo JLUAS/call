@@ -77,7 +77,7 @@ app.post('/process-speech', async (req, res) => {
     } else {
       // Mantener el flujo natural de la conversación
       const gptResponse = await openai.chat.completions.create({
-        model: 'ft:gpt-4o-mini:my-custom-model-id', // Reemplaza con tu ID de modelo fine-tuned
+        model: model, // Reemplaza con tu ID de modelo fine-tuned
         messages: [
           ...context,
           { role: 'user', content: userSpeech },
