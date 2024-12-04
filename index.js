@@ -30,45 +30,57 @@ app.post('/process-speech', async (req, res) => {
   const userSpeech = req.body.SpeechResult; // Entrada del usuario transcrita por Twilio
   console.log(`Usuario dijo: ${userSpeech}`);
 
+  // Definir el contexto para el modelo
+  const context = [
+    { role: 'system', content: 'Eres un asistente de ventas amigable del banco Choche.' },
+    { role: 'user', content: userSpeech },  // Entrada del usuario
+  ];
+
+  // Iniciar una conversación flexible y sin seguir una línea rígida
+  const conversationPrompt = [
+    { role: 'system', content: 'Eres un agente de ventas del banco Choche, especializado en terminales de pago. Tu objetivo es persuadir a los usuarios de que las terminales de Choche son la mejor opción.' },
+    { role: 'user', content: userSpeech }, // Respuesta del usuario
+  ];
+
   try {
-    // Llamar a ChatGPT para obtener una respuesta
+    // Llamar a ChatGPT para obtener una respuesta fluida y natural
     const gptResponse = await openai.chat.completions.create({
-      model: 'gpt-4o-mini', // Modelo de ChatGPT
-      messages: [
-        { role: 'system', content: 'Eres un asistente virtual amable y profesional.' },
-        { role: 'user', content: userSpeech },
-      ],
+      model: 'gpt-4o-mini', // Usar el modelo de ChatGPT
+      messages: conversationPrompt,  // Pasar el contexto general de la conversación
     });
 
     const botResponse = gptResponse.choices[0].message.content;
-    console.log(`Respuesta de ChatGPT: ${botResponse}`);
+    console.log(`Respuesta generada por ChatGPT: ${botResponse}`);
 
-    // Responder al usuario en la llamada
+    // Responder al usuario con la respuesta generada
     const response = new VoiceResponse();
     response.say({ voice: 'alice', language: 'es-MX' }, botResponse);
 
-    // Permitir más interacción
+    // Continuar la conversación si es necesario
     response.gather({
       input: 'speech',
-      action: '/process-speech',
+      action: '/process-speech',  // Acción para continuar procesando la entrada
       language: 'es-MX',
-      hints: 'soporte técnico, ventas, consulta',
-      timeout: 5, // Tiempo para esperar una respuesta en segundos
+      hints: 'soporte técnico, ventas, consulta, terminales, banco Choche',
+      timeout: 5,  // Tiempo de espera para una respuesta del usuario
     });
+
     response.say('No escuché nada. Por favor, repite tu solicitud.');
 
     res.type('text/xml');
     res.send(response.toString());
   } catch (error) {
-    console.error('Error al interactuar con ChatGPT:', error);
+    console.error('Error al generar respuesta:', error);
 
-    // Respuesta de error
+    // Respuesta de error en caso de que falle la interacción
     const response = new VoiceResponse();
     response.say({ voice: 'alice', language: 'es-MX' }, 'Lo siento, hubo un problema. Por favor, intenta de nuevo.');
+
     res.type('text/xml');
     res.send(response.toString());
   }
 });
+
 
 // Ruta para realizar la llamada saliente
 app.get('/call', (req, res) => {
