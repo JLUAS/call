@@ -30,26 +30,43 @@ app.post('/process-speech', async (req, res) => {
   const userSpeech = req.body.SpeechResult; // Entrada del usuario transcrita por Twilio
   console.log(`Usuario dijo: ${userSpeech}`);
 
-  // Definir el contexto para el modelo
-  const context = [
-    { role: 'system', content: 'Eres un asistente de ventas amigable del banco Choche.' },
-    { role: 'user', content: userSpeech },  // Entrada del usuario
+  // Variables de contexto dinámico
+  let context = [
+    { role: 'system', content: 'Eres un asesor de ventas amigable del banco Choche.' },
   ];
-
-  // Iniciar una conversación flexible y sin seguir una línea rígida
-  const conversationPrompt = [
-    { role: 'system', content: 'Eres un agente de ventas del banco Choche, especializado en terminales de pago. Tu objetivo es persuadir a los usuarios de que las terminales de Choche son la mejor opción.' },
-    { role: 'user', content: userSpeech }, // Respuesta del usuario
-  ];
+  let botResponse = '';
+  let nombreUsuario = null;
 
   try {
-    // Llamar a ChatGPT para obtener una respuesta fluida y natural
-    const gptResponse = await openai.chat.completions.create({
-      model: 'gpt-4o-mini', // Usar el modelo de ChatGPT
-      messages: conversationPrompt,  // Pasar el contexto general de la conversación
-    });
+    // Analizar el contexto según lo que dijo el usuario
+    if (userSpeech.toLowerCase().includes('hola') || userSpeech.toLowerCase().includes('buenos días')) {
+      botResponse = 'Hola, soy tu asesor de ventas del banco Choche. ¿Cómo estás hoy?';
+      context.push({ role: 'assistant', content: botResponse });
+    } else if (userSpeech.toLowerCase().includes('mi nombre es')) {
+      nombreUsuario = userSpeech.split('mi nombre es')[1].trim(); // Extraer el nombre
+      botResponse = `¡Mucho gusto, ${nombreUsuario}! ¿En qué puedo ayudarte hoy?`;
+      context.push({ role: 'assistant', content: botResponse });
+    } else if (userSpeech.toLowerCase().includes('quiero comprar') || userSpeech.toLowerCase().includes('terminal')) {
+      botResponse = `Excelente decisión${nombreUsuario ? `, ${nombreUsuario}` : ''}. ¿Podrías proporcionarme tu correo electrónico para finalizar la compra?`;
+      context.push({ role: 'assistant', content: botResponse });
+    } else if (userSpeech.toLowerCase().includes('@')) {
+      const email = userSpeech.trim();
+      botResponse = `Perfecto${nombreUsuario ? `, ${nombreUsuario}` : ''}. Hemos registrado tu correo: ${email}. Un asesor se pondrá en contacto contigo pronto. ¿Algo más en lo que pueda ayudarte?`;
+      context.push({ role: 'assistant', content: botResponse });
+    } else {
+      // Mantener el flujo natural de la conversación
+      const gptResponse = await openai.chat.completions.create({
+        model: 'gpt-4', // Modelo de ChatGPT
+        messages: [
+          ...context,
+          { role: 'user', content: userSpeech },
+        ],
+      });
 
-    const botResponse = gptResponse.choices[0].message.content;
+      botResponse = gptResponse.choices[0].message.content;
+      context.push({ role: 'assistant', content: botResponse });
+    }
+
     console.log(`Respuesta generada por ChatGPT: ${botResponse}`);
 
     // Responder al usuario con la respuesta generada
@@ -59,10 +76,10 @@ app.post('/process-speech', async (req, res) => {
     // Continuar la conversación si es necesario
     response.gather({
       input: 'speech',
-      action: '/process-speech',  // Acción para continuar procesando la entrada
+      action: '/process-speech', // Acción para continuar procesando la entrada
       language: 'es-MX',
-      hints: 'soporte técnico, ventas, consulta, terminales, banco Choche',
-      timeout: 5,  // Tiempo de espera para una respuesta del usuario
+      hints: 'soporte técnico, ventas, consulta, terminales, banco Choche, terminal',
+      timeout: 5, // Tiempo de espera para una respuesta del usuario
     });
 
     response.say('No escuché nada. Por favor, repite tu solicitud.');
@@ -80,6 +97,7 @@ app.post('/process-speech', async (req, res) => {
     res.send(response.toString());
   }
 });
+
 
 
 // Ruta para realizar la llamada saliente
