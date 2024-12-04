@@ -56,7 +56,7 @@ app.post('/process-speech', async (req, res) => {
     } else {
       // Mantener el flujo natural de la conversación
       const gptResponse = await openai.chat.completions.create({
-        model: 'gpt-4', // Modelo de ChatGPT
+        model: 'gpt-4o-mini', // Usar el modelo de ChatGPT
         messages: [
           ...context,
           { role: 'user', content: userSpeech },
