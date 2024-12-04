@@ -15,7 +15,6 @@ const twilioPhoneNumber = process.env.TWILIO_PHONE;
 const accountSid = process.env.TWILIO_ACCOUNT_SID;
 const authToken = process.env.TWILIO_AUTH_TOKEN;
 const apiKey = process.env.OPENAI_API_KEY;
-const model = process.env.OPENAI_MODEL;
 const VoiceResponse = twilio.twiml.VoiceResponse; // Twilio VoiceResponse
 
 const client = new twilio(accountSid, authToken);
@@ -77,13 +76,12 @@ app.post('/process-speech', async (req, res) => {
     } else {
       // Mantener el flujo natural de la conversación
       const gptResponse = await openai.chat.completions.create({
-        model: 'ft:gpt-4o-mini:my-custom-model-id', // Reemplaza con tu ID de modelo fine-tuned
+        model: 'gpt-4o-mini', // Usar el modelo de ChatGPT
         messages: [
           ...context,
           { role: 'user', content: userSpeech },
         ],
       });
-      
 
       botResponse = gptResponse.choices[0].message.content;
       context.push({ role: 'assistant', content: botResponse });
