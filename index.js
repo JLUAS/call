@@ -34,7 +34,7 @@ if (!fs.existsSync(publicDir)) {
   fs.mkdirSync(publicDir);
 }
 // Configurar Express para servir archivos estáticos desde el directorio público
-app.use('/public', express.static(path.join(__dirname, 'public')));
+app.use('/public', express.static(publicDir));
 
 // Middleware para manejar JSON y datos codificados
 app.use(express.json());
