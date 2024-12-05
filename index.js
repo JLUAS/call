@@ -44,6 +44,11 @@ app.post('/process-speech', async (req, res) => {
   const userSpeech = req.body.SpeechResult; // Entrada del usuario transcrita por Twilio
   console.log(`Usuario dijo: ${userSpeech}`);
 
+  const despedidas = [
+    "adiós", "hasta luego", "nos vemos", "bye", "me voy", "gracias, adiós", 
+    "eso es todo, hasta luego", "ya terminé, gracias", "me tengo que ir"
+  ];
+
   let botResponse = '';
 
   try {
@@ -97,6 +102,10 @@ app.post('/process-speech', async (req, res) => {
 
     res.type('text/xml');
     res.send(response.toString());
+    // Verificar si la entrada del usuario contiene una despedida
+    if (despedidas.some(despedida => userSpeech.includes(despedida))) {
+      return;
+    }  
   } catch (error) {
     console.error('Error al generar respuesta:', error);
 
