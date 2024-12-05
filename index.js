@@ -24,11 +24,15 @@ const client = new twilio(accountSid, authToken);
 const openai = new OpenAI({
   apiKey: apiKey,
 });
+const publicDir = path.join(__dirname, 'public');
 
 let context = [
   { role: 'system', content: 'Eres un asistente del banco Choche especializado en terminales de pago. Tu misión es ofrecer información clara y precisa sobre las terminales del banco, resolver dudas comunes y destacar sus beneficios frente a la competencia. Actúas como un asesor profesional que guía al cliente en la elección de la mejor solución para su negocio. Mantén siempre un tono cordial, profesional y persuasivo, pero sin ser invasivo. Si el cliente no está interesado, termina la conversación de manera educada y agradable.' },
 ];
-
+// Verificar y crear el directorio si no existe
+if (!fs.existsSync(publicDir)) {
+  fs.mkdirSync(publicDir);
+}
 // Configurar Express para servir archivos estáticos desde el directorio público
 app.use('/public', express.static(path.join(__dirname, 'public')));
 
@@ -76,7 +80,7 @@ app.post('/process-speech', async (req, res) => {
 
     // Guardar el audio generado en el directorio público
     const audioFileName = `${uuidv4()}.mp3`;
-    const audioFilePath = path.join(__dirname, 'public', audioFileName);
+    const audioFilePath = path.join(publicDir, `${uuidv4()}.mp3`);
     fs.writeFileSync(audioFilePath, audioBuffer);
 
     console.log(`Audio guardado en: ${audioFilePath}`);
