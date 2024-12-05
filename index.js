@@ -26,13 +26,12 @@ const openai = new OpenAI({
 });
 const publicDir = path.join(__dirname, 'public');
 
-let context = [
-  { role: 'system', content: 'Eres un asistente del banco Choche especializado en terminales de pago. Tu misión es ofrecer información clara y precisa sobre las terminales del banco, resolver dudas comunes y destacar sus beneficios frente a la competencia. Actúas como un asesor profesional que guía al cliente en la elección de la mejor solución para su negocio. Mantén siempre un tono cordial, profesional y persuasivo, pero sin ser invasivo. Si el cliente no está interesado, termina la conversación de manera educada y agradable.' },
-];
 // Verificar y crear el directorio si no existe
 if (!fs.existsSync(publicDir)) {
-  fs.mkdirSync(publicDir);
+  fs.mkdirSync(publicDir, { recursive: true });
+  console.log('Directorio "public" creado.');
 }
+
 // Configurar Express para servir archivos estáticos desde el directorio público
 app.use('/public', express.static(publicDir));
 
@@ -52,14 +51,12 @@ app.post('/process-speech', async (req, res) => {
     const gptResponse = await openai.chat.completions.create({
       model: model, // Cambia por tu modelo fine-tuned
       messages: [
-        ...context,
+        { role: 'system', content: 'Eres un asistente del banco Choche especializado en terminales de pago. Tu misión es ofrecer información clara y precisa sobre las terminales del banco, resolver dudas comunes y destacar sus beneficios frente a la competencia. Actúas como un asesor profesional que guía al cliente en la elección de la mejor solución para su negocio. Mantén siempre un tono cordial, profesional y persuasivo, pero sin ser invasivo. Si el cliente no está interesado, termina la conversación de manera educada y agradable.' },
         { role: 'user', content: userSpeech },
       ],
     });
 
     botResponse = gptResponse.choices[0].message.content;
-    context.push({ role: 'assistant', content: botResponse });
-
     console.log(`Respuesta generada por ChatGPT: ${botResponse}`);
 
     // Llamada a la API de OpenAI para generar el audio de la respuesta
@@ -78,16 +75,17 @@ app.post('/process-speech', async (req, res) => {
 
     const audioBuffer = await audioResponse.buffer();
 
-    // Guardar el audio generado en el directorio público
+    // Generar un nombre único para el archivo de audio
     const audioFileName = `${uuidv4()}.mp3`;
-    const audioFilePath = path.join(publicDir, `${uuidv4()}.mp3`);
+    const audioFilePath = path.join(publicDir, audioFileName); // Guardar en el directorio "public"
+    
+    // Guardar el audio generado en el directorio público
     fs.writeFileSync(audioFilePath, audioBuffer);
-
     console.log(`Audio guardado en: ${audioFilePath}`);
 
     // Responder al usuario con el audio generado
     const response = new VoiceResponse();
-    response.play(`/public/${audioFileName}`); // Reproducir el archivo de audio
+    response.play(`https://call-t0fi.onrender.com/public/${audioFileName}`); // Reproducir el archivo de audio
 
     // Continuar la conversación si es necesario
     response.gather({
@@ -144,6 +142,7 @@ app.post('/voice', (req, res) => {
   res.type('text/xml');
   res.send(response.toString());
 });
+
 // Hacer llamadas periódicas cada 60 segundos
 setInterval(() => {
   client.calls.create({
@@ -158,6 +157,7 @@ setInterval(() => {
     console.error('Error al hacer la llamada:', err);
   });
 }, 30000);
+
 // Inicia el servidor
 app.listen(port, () => {
   console.log(`Servidor corriendo en http://localhost:${port}`);
