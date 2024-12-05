@@ -31,6 +31,12 @@ const openai = new OpenAI({
   apiKey: apiKey
 });
 
+
+let context = [
+  { role: 'system', content: 'Eres un asistente del banco Choche especializado en terminales de pago.' }
+];
+let nombreUsuario = null; // Variable para almacenar el nombre del usuario
+
 app.post('/process-speech', async (req, res) => {
   const userSpeech = req.body.SpeechResult; // Entrada del usuario transcrita por Twilio
   console.log(`Usuario dijo: ${userSpeech}`);
@@ -42,6 +48,7 @@ app.post('/process-speech', async (req, res) => {
     const gptResponse = await openai.chat.completions.create({
       model: model, // Cambia por tu modelo fine-tuned
       messages: [
+        ...context,
         { role: 'user', content: userSpeech },
       ],
     });
