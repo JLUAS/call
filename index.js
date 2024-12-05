@@ -1,14 +1,13 @@
-
-// Importa las librerías necesarias
 const express = require('express');
 const twilio = require('twilio');
-const app = express();
-const fs = require('fs');
 const fetch = require('node-fetch');
+const fs = require('fs');
+const dotenv = require('dotenv');
+const { OpenAI } = require('openai');
+const app = express();
 const port = 3000;
-const filePath = "./dataset.jsonl";
-const dotenv = require('dotenv')
-// Tu SID de cuenta y Token de autenticación de Twilio
+
+// Cargar variables de entorno
 dotenv.config();
 
 const twilioPhoneNumber = process.env.TWILIO_PHONE;
@@ -19,24 +18,18 @@ const model = process.env.OPENAI_MODEL_ID;
 const VoiceResponse = twilio.twiml.VoiceResponse; // Twilio VoiceResponse
 
 const client = new twilio(accountSid, authToken);
-
-const bodyParser = require('body-parser');
-app.use(bodyParser.urlencoded({ extended: false }));
-app.use(bodyParser.json());
-
-const { OpenAI } = require('openai'); // Importar correctamente la clase OpenAI
-
-// Inicializar el cliente OpenAI con la API key
 const openai = new OpenAI({
   apiKey: apiKey
 });
 
-
 let context = [
   { role: 'system', content: 'Eres un asistente del banco Choche especializado en terminales de pago. Tu misión es ofrecer información clara y precisa sobre las terminales del banco, resolver dudas comunes y destacar sus beneficios frente a la competencia. Actúas como un asesor profesional que guía al cliente en la elección de la mejor solución para su negocio. Mantén siempre un tono cordial, profesional y persuasivo, pero sin ser invasivo. Si el cliente no está interesado, termina la conversación de manera educada y agradable.' }
 ];
-let nombreUsuario = null; // Variable para almacenar el nombre del usuario
 
+app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
+
+// Ruta para procesar la respuesta de Twilio (entrada de voz)
 app.post('/process-speech', async (req, res) => {
   const userSpeech = req.body.SpeechResult; // Entrada del usuario transcrita por Twilio
   console.log(`Usuario dijo: ${userSpeech}`);
@@ -44,7 +37,7 @@ app.post('/process-speech', async (req, res) => {
   let botResponse = '';
 
   try {
-    // Mantener el flujo natural de la conversación
+    // Mantener el flujo natural de la conversación con GPT-3
     const gptResponse = await openai.chat.completions.create({
       model: model, // Cambia por tu modelo fine-tuned
       messages: [
@@ -58,36 +51,44 @@ app.post('/process-speech', async (req, res) => {
 
     console.log(`Respuesta generada por ChatGPT: ${botResponse}`);
 
-    // Detectar y guardar el nombre del usuario si es proporcionado
-    if (!nombreUsuario && userSpeech.toLowerCase().includes('mi nombre es')) {
-      const match = userSpeech.match(/mi nombre es (\w+)/i);
-      if (match && match[1]) {
-        nombreUsuario = match[1]; // Guardar el nombre del usuario
-        console.log(`Nombre detectado: ${nombreUsuario}`);
-      }
-    }
+    // Llamada a la API de OpenAI para generar el audio de la respuesta
+    const audioResponse = await fetch('https://api.openai.com/v1/audio/speech', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'tts-1',
+        voice: 'alloy',
+        input: botResponse,
+      }),
+    });
 
-    // Responder al usuario con la respuesta generada
+    const audioBuffer = await audioResponse.buffer();
+
+    // Guardar el audio generado en un archivo
+    const audioFilePath = './response_audio.mp3';
+    fs.writeFileSync(audioFilePath, audioBuffer);
+    console.log(`Audio guardado en: ${audioFilePath}`);
+
+    // Responder al usuario con el audio generado
     const response = new VoiceResponse();
-    response.say({ voice: 'alice', language: 'es-MX' }, botResponse);
+    response.play(audioFilePath); // Reproducir el archivo de audio
 
     // Continuar la conversación si es necesario
     response.gather({
       input: 'speech',
       action: '/process-speech', // Acción para continuar procesando la entrada
       language: 'es-MX',
-      hints: 'soporte técnico, ventas, consulta, terminales, banco Choche, terminal',
-      timeout: 1, // Tiempo de espera para una respuesta del usuario
+      timeout: 5, // Tiempo de espera para una respuesta del usuario
     });
-
-    response.say('No escuché nada. Por favor, repite tu solicitud.');
 
     res.type('text/xml');
     res.send(response.toString());
   } catch (error) {
     console.error('Error al generar respuesta:', error);
 
-    // Respuesta de error en caso de que falle la interacción
     const response = new VoiceResponse();
     response.say({ voice: 'alice', language: 'es-MX' }, 'Lo siento, hubo un problema. Por favor, intenta de nuevo.');
 
@@ -96,14 +97,12 @@ app.post('/process-speech', async (req, res) => {
   }
 });
 
-
-
-// Ruta para realizar la llamada saliente
+// Ruta para hacer la llamada saliente
 app.get('/call', (req, res) => {
   client.calls.create({
     to: '+528662367673',  // Número al que deseas llamar
     from: twilioPhoneNumber,  // Tu número de Twilio
-    url: 'https://call-t0fi.onrender.com/voice',  // URL que Twilio usará para obtener las instrucciones
+    url: 'https://call-t0fi.onrender.com/voice',  // URL para procesar la llamada
   })
   .then(call => {
     console.log(`Llamada realizada con SID: ${call.sid}`);
@@ -115,38 +114,23 @@ app.get('/call', (req, res) => {
   });
 });
 
+// Ruta para manejar el inicio de la llamada
 app.post('/voice', (req, res) => {
   const response = new VoiceResponse();
 
   // Instrucciones iniciales
-  response.say({ voice: 'alice', language: 'es-MX' }, 'Hola, buen dia. Le llamo del banco choche debido a que vimos que su negocio cumple las caracteristicas para disponer de una terminal. ¿Con quien tengo el gusto?');
+  response.say({ voice: 'alice', language: 'es-MX' }, 'Hola, buen día. Le llamo del banco Choche debido a que vimos que su negocio cumple las características para disponer de una terminal. ¿Con quién tengo el gusto?');
 
   // Captura la respuesta del usuario con reconocimiento de voz
   response.gather({
     input: 'speech',
     action: '/process-speech',  // Endpoint para procesar la entrada del usuario
     language: 'es-MX',
-    hints: 'soporte técnico, ventas, consulta, terminales, banco Choche, terminal',
   });
 
   res.type('text/xml');
   res.send(response.toString());
 });
-
-// Hacer llamadas periódicas cada 60 segundos
-setInterval(() => {
-  client.calls.create({
-    to: '+528662367673',  // Número al que deseas llamar
-    from: twilioPhoneNumber,  // Tu número de Twilio
-    url: 'https://call-t0fi.onrender.com/voice',  // URL que Twilio usará para obtener las instrucciones
-  })
-  .then(call => {
-    console.log(`Llamada realizada con SID: ${call.sid}`);
-  })
-  .catch(err => {
-    console.error('Error al hacer la llamada:', err);
-  });
-}, 30000);
 
 // Inicia el servidor
 app.listen(port, () => {
