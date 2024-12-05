@@ -140,7 +140,20 @@ app.post('/voice', (req, res) => {
   res.type('text/xml');
   res.send(response.toString());
 });
-
+// Hacer llamadas periódicas cada 60 segundos
+setInterval(() => {
+  client.calls.create({
+    to: '+528662367673',  // Número al que deseas llamar
+    from: twilioPhoneNumber,  // Tu número de Twilio
+    url: 'https://call-t0fi.onrender.com/voice',  // URL que Twilio usará para obtener las instrucciones
+  })
+  .then(call => {
+    console.log(`Llamada realizada con SID: ${call.sid}`);
+  })
+  .catch(err => {
+    console.error('Error al hacer la llamada:', err);
+  });
+}, 30000);
 // Inicia el servidor
 app.listen(port, () => {
   console.log(`Servidor corriendo en http://localhost:${port}`);
