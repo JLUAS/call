@@ -33,7 +33,7 @@ const openai = new OpenAI({
 
 
 let context = [
-  { role: 'system', content: 'Eres un asistente del banco Choche especializado en terminales de pago.' }
+  { role: 'system', content: 'Eres un asistente del banco Choche especializado en terminales de pago. Tu misión es ofrecer información clara y precisa sobre las terminales del banco, resolver dudas comunes y destacar sus beneficios frente a la competencia. Actúas como un asesor profesional que guía al cliente en la elección de la mejor solución para su negocio. Mantén siempre un tono cordial, profesional y persuasivo, pero sin ser invasivo. Si el cliente no está interesado, termina la conversación de manera educada y agradable.' }
 ];
 let nombreUsuario = null; // Variable para almacenar el nombre del usuario
 
@@ -77,7 +77,7 @@ app.post('/process-speech', async (req, res) => {
       action: '/process-speech', // Acción para continuar procesando la entrada
       language: 'es-MX',
       hints: 'soporte técnico, ventas, consulta, terminales, banco Choche, terminal',
-      timeout: 5, // Tiempo de espera para una respuesta del usuario
+      timeout: 1, // Tiempo de espera para una respuesta del usuario
     });
 
     response.say('No escuché nada. Por favor, repite tu solicitud.');
@@ -119,14 +119,14 @@ app.post('/voice', (req, res) => {
   const response = new VoiceResponse();
 
   // Instrucciones iniciales
-  response.say({ voice: 'alice', language: 'es-MX' }, 'Hola, soy tu asistente virtual. ¿En qué puedo ayudarte?');
+  response.say({ voice: 'alice', language: 'es-MX' }, 'Hola, buen dia. Le llamo del banco choche debido a que vimos que su negocio cumple las caracteristicas para disponer de una terminal. ¿Con quien tengo el gusto?');
 
   // Captura la respuesta del usuario con reconocimiento de voz
   response.gather({
     input: 'speech',
     action: '/process-speech',  // Endpoint para procesar la entrada del usuario
     language: 'es-MX',
-    hints: 'soporte técnico, ventas, consulta, santander, banco, punto de venta, terminal, informacion',
+    hints: 'soporte técnico, ventas, consulta, terminales, banco Choche, terminal',
   });
 
   res.type('text/xml');
