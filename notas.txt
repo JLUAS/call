@@ -1,0 +1,4 @@
+Para entrenar una IA, tengo que ir a fine-tuning https://platform.openai.com/chat-completions
+Darle a create y subir el jsonl con los prompts, despues dejar que se entrene
+Despues de eso tengo que habilitar su uso en mi proyecto https://platform.openai.com/settings/proj_0XianYQ9aXt8QxbinsnKh6UN/limits
+Despues ya la puedo usar

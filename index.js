@@ -32,32 +32,45 @@ const openai = new OpenAI({
 });
 
 
+let context = [
+  { role: 'system', content: 'Eres un asistente del banco Choche especializado en terminales de pago.' }
+];
+let nombreUsuario = null; // Variable para almacenar el nombre del usuario
+
 app.post('/process-speech', async (req, res) => {
   const userSpeech = req.body.SpeechResult; // Entrada del usuario transcrita por Twilio
   console.log(`Usuario dijo: ${userSpeech}`);
 
-  // Variables de contexto dinámico
-  let context = [
-    { role: 'system', content: 'Eres un asesor de ventas amigable del banco Choche que tiene como mision ofrecer una terminal, al principio de la conversacion siempre saludas y preguntas por el nombre.' },
-  ];
   let botResponse = '';
-  let nombreUsuario = null;
 
   try {
+    // Incluir el nombre del usuario en el contexto si ya se conoce
+    if (nombreUsuario) {
+      context.push({ role: 'assistant', content: `Hola ${nombreUsuario}, ¿en qué puedo ayudarte hoy?` });
+    }
 
-      // Mantener el flujo natural de la conversación
-      const gptResponse = await openai.chat.completions.create({
-        model: model, // Reemplaza con tu ID de modelo fine-tuned
-        messages: [
-          ...context,
-          { role: 'user', content: userSpeech },
-        ],
-      });
+    // Mantener el flujo natural de la conversación
+    const gptResponse = await openai.chat.completions.create({
+      model: model, // Cambia por tu modelo fine-tuned
+      messages: [
+        ...context,
+        { role: 'user', content: userSpeech },
+      ],
+    });
 
-      botResponse = gptResponse.choices[0].message.content;
-      context.push({ role: 'assistant', content: botResponse });
-    
+    botResponse = gptResponse.choices[0].message.content;
+    context.push({ role: 'assistant', content: botResponse });
+
     console.log(`Respuesta generada por ChatGPT: ${botResponse}`);
+
+    // Detectar y guardar el nombre del usuario si es proporcionado
+    if (!nombreUsuario && userSpeech.toLowerCase().includes('mi nombre es')) {
+      const match = userSpeech.match(/mi nombre es (\w+)/i);
+      if (match && match[1]) {
+        nombreUsuario = match[1]; // Guardar el nombre del usuario
+        console.log(`Nombre detectado: ${nombreUsuario}`);
+      }
+    }
 
     // Responder al usuario con la respuesta generada
     const response = new VoiceResponse();
