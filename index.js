@@ -4,6 +4,9 @@ const fetch = require('node-fetch');
 const fs = require('fs');
 const dotenv = require('dotenv');
 const { OpenAI } = require('openai');
+const path = require('path');
+const { v4: uuidv4 } = require('uuid'); // Para generar nombres únicos de archivos
+
 const app = express();
 const port = 3000;
 
@@ -19,13 +22,17 @@ const VoiceResponse = twilio.twiml.VoiceResponse; // Twilio VoiceResponse
 
 const client = new twilio(accountSid, authToken);
 const openai = new OpenAI({
-  apiKey: apiKey
+  apiKey: apiKey,
 });
 
 let context = [
-  { role: 'system', content: 'Eres un asistente del banco Choche especializado en terminales de pago. Tu misión es ofrecer información clara y precisa sobre las terminales del banco, resolver dudas comunes y destacar sus beneficios frente a la competencia. Actúas como un asesor profesional que guía al cliente en la elección de la mejor solución para su negocio. Mantén siempre un tono cordial, profesional y persuasivo, pero sin ser invasivo. Si el cliente no está interesado, termina la conversación de manera educada y agradable.' }
+  { role: 'system', content: 'Eres un asistente del banco Choche especializado en terminales de pago. Tu misión es ofrecer información clara y precisa sobre las terminales del banco, resolver dudas comunes y destacar sus beneficios frente a la competencia. Actúas como un asesor profesional que guía al cliente en la elección de la mejor solución para su negocio. Mantén siempre un tono cordial, profesional y persuasivo, pero sin ser invasivo. Si el cliente no está interesado, termina la conversación de manera educada y agradable.' },
 ];
 
+// Configurar Express para servir archivos estáticos desde el directorio público
+app.use('/public', express.static(path.join(__dirname, 'public')));
+
+// Middleware para manejar JSON y datos codificados
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
@@ -67,14 +74,16 @@ app.post('/process-speech', async (req, res) => {
 
     const audioBuffer = await audioResponse.buffer();
 
-    // Guardar el audio generado en un archivo
-    const audioFilePath = './response_audio.mp3';
+    // Guardar el audio generado en el directorio público
+    const audioFileName = `${uuidv4()}.mp3`;
+    const audioFilePath = path.join(__dirname, 'public', audioFileName);
     fs.writeFileSync(audioFilePath, audioBuffer);
+
     console.log(`Audio guardado en: ${audioFilePath}`);
 
     // Responder al usuario con el audio generado
     const response = new VoiceResponse();
-    response.play(audioFilePath); // Reproducir el archivo de audio
+    response.play(`/public/${audioFileName}`); // Reproducir el archivo de audio
 
     // Continuar la conversación si es necesario
     response.gather({
@@ -100,18 +109,18 @@ app.post('/process-speech', async (req, res) => {
 // Ruta para hacer la llamada saliente
 app.get('/call', (req, res) => {
   client.calls.create({
-    to: '+528662367673',  // Número al que deseas llamar
-    from: twilioPhoneNumber,  // Tu número de Twilio
-    url: 'https://call-t0fi.onrender.com/voice',  // URL para procesar la llamada
+    to: '+528662367673', // Número al que deseas llamar
+    from: twilioPhoneNumber, // Tu número de Twilio
+    url: 'https://call-t0fi.onrender.com/voice', // URL para procesar la llamada
   })
-  .then(call => {
-    console.log(`Llamada realizada con SID: ${call.sid}`);
-    res.send(`Llamada realizada: ${call.sid}`);
-  })
-  .catch(err => {
-    console.error('Error al hacer la llamada:', err);
-    res.status(500).send('Error al hacer la llamada');
-  });
+    .then(call => {
+      console.log(`Llamada realizada con SID: ${call.sid}`);
+      res.send(`Llamada realizada: ${call.sid}`);
+    })
+    .catch(err => {
+      console.error('Error al hacer la llamada:', err);
+      res.status(500).send('Error al hacer la llamada');
+    });
 });
 
 // Ruta para manejar el inicio de la llamada
@@ -124,28 +133,13 @@ app.post('/voice', (req, res) => {
   // Captura la respuesta del usuario con reconocimiento de voz
   response.gather({
     input: 'speech',
-    action: '/process-speech',  // Endpoint para procesar la entrada del usuario
+    action: '/process-speech', // Endpoint para procesar la entrada del usuario
     language: 'es-MX',
   });
 
   res.type('text/xml');
   res.send(response.toString());
 });
-
-// Hacer llamadas periódicas cada 60 segundos
-setInterval(() => {
-  client.calls.create({
-    to: '+528662367673',  // Número al que deseas llamar
-    from: twilioPhoneNumber,  // Tu número de Twilio
-    url: 'https://call-t0fi.onrender.com/voice',  // URL que Twilio usará para obtener las instrucciones
-  })
-  .then(call => {
-    console.log(`Llamada realizada con SID: ${call.sid}`);
-  })
-  .catch(err => {
-    console.error('Error al hacer la llamada:', err);
-  });
-}, 30000);
 
 // Inicia el servidor
 app.listen(port, () => {
