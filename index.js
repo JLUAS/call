@@ -92,7 +92,7 @@ app.post('/process-speech', async (req, res) => {
       input: 'speech',
       action: '/process-speech', // Acción para continuar procesando la entrada
       language: 'es-MX',
-      timeout: 5, // Tiempo de espera para una respuesta del usuario
+      timeout: 2, // Tiempo de espera para una respuesta del usuario
     });
 
     res.type('text/xml');
