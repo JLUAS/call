@@ -73,7 +73,7 @@ app.post('/process-speech', async (req, res) => {
       },
       body: JSON.stringify({
         model: 'tts-1',
-        voice: 'alloy',
+        voice: 'shimmer',
         input: botResponse,
       }),
     });
@@ -135,17 +135,66 @@ app.get('/call', (req, res) => {
 });
 
 // Ruta para manejar el inicio de la llamada
-app.post('/voice', (req, res) => {
+app.post('/voice', async (req, res) => {
   const response = new VoiceResponse();
 
-  // Instrucciones iniciales
-  response.say({ voice: 'alice', language: 'es-MX' }, 'Hola, buen día. Le llamo del banco Choche debido a que vimos que su negocio cumple las características para disponer de una terminal. ¿Con quién tengo el gusto?');
+  // Instrucciones iniciales a generar desde OpenAI
+  let botResponse = '';
+  try {
+    // Usar OpenAI para generar la respuesta inicial
+    const gptResponse = await openai.chat.completions.create({
+      model: model, // Cambia por tu modelo fine-tuned si es necesario
+      messages: [
+        {
+          role: 'system',
+          content: 'Eres un asistente del banco Choche. Tu misión es ofrecer soporte claro sobre las terminales de pago y atender al cliente de forma profesional.',
+        },
+        {
+          role: 'user',
+          content: 'Hola, soy tu asistente virtual. ¿En qué puedo ayudarte?',
+        },
+      ],
+    });
 
-  // Captura la respuesta del usuario con reconocimiento de voz
+    // Obtener la respuesta de OpenAI
+    botResponse = gptResponse.choices[0].message.content;
+    console.log(`Respuesta generada por OpenAI: ${botResponse}`);
+  } catch (error) {
+    console.error('Error al generar la respuesta con OpenAI:', error);
+    botResponse = 'Lo siento, hubo un error al procesar la solicitud. Intenta de nuevo más tarde.';
+  }
+
+  // Llamar a la API de OpenAI para convertir el texto en audio
+  const audioResponse = await fetch('https://api.openai.com/v1/audio/speech', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      model: 'tts-1', // Cambia si es necesario el modelo para texto a voz
+      voice: 'shimmer',  // Cambia el tipo de voz si es necesario
+      input: botResponse,
+    }),
+  });
+
+  const audioBuffer = await audioResponse.buffer();
+  const audioFileName = `${uuidv4()}.mp3`;
+  const audioFilePath = path.join(publicDir, audioFileName); // Guardar el archivo en el directorio "public"
+
+  // Guardar el archivo de audio generado
+  fs.writeFileSync(audioFilePath, audioBuffer);
+  console.log(`Audio guardado en: ${audioFilePath}`);
+
+  // Reproducir el audio generado al usuario
+  response.play(`https://call-t0fi.onrender.com/public/${audioFileName}`);
+
+  // Capturar la respuesta del usuario
   response.gather({
     input: 'speech',
-    action: '/process-speech', // Endpoint para procesar la entrada del usuario
+    action: '/process-speech',  // Endpoint para procesar la entrada del usuario
     language: 'es-MX',
+    hints: 'soporte técnico, ventas, consulta, terminal, información, punto de venta',
   });
 
   res.type('text/xml');

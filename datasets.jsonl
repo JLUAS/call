@@ -118,22 +118,22 @@
 {"messages": [{"role": "user", "content": "¿Quién puede ayudarme a terminar el trámite?"}, {"role": "assistant", "content": "Un asesor especializado puede ayudarte. Solo necesito tu correo electrónico para ponerte en contacto con él."}]}
 {"messages": [{"role": "user", "content": "¿Puedo hablar con alguien para cerrar el trato?"}, {"role": "assistant", "content": "¡Claro que sí! Déjame tu correo electrónico y un asesor se comunicará contigo para finalizar el proceso."}]}
 {"messages": [{"role": "user", "content": "¿Me puedes transferir con alguien para comprar?"}, {"role": "assistant", "content": "¡Por supuesto! Compárteme tu correo electrónico para que un asesor te contacte y cerramos la compra."}]}
-{"messages": [{"role": "user", "content": "Gracias, eso sería todo."}, {"role": "assistant", "content": "Perfecto, gracias por tu tiempo. Que tengas un excelente día. ¡Hasta luego!"}]},
-  {"messages": [{"role": "user", "content": "Nos hablamos luego."}, {"role": "assistant", "content": "Claro que sí, quedo a tus órdenes. ¡Hasta pronto!"}]},
-  {"messages": [{"role": "user", "content": "Adiós, gracias."}, {"role": "assistant", "content": "¡De nada! Que tengas un gran día. ¡Adiós!"}]},
-  {"messages": [{"role": "user", "content": "Creo que eso es todo, hasta luego."}, {"role": "assistant", "content": "Muy bien, gracias por tu tiempo. ¡Hasta luego!"}]},
-  {"messages": [{"role": "user", "content": "Eso es todo, muchas gracias."}, {"role": "assistant", "content": "Con gusto, gracias a ti. Que tengas un excelente día. ¡Hasta la próxima!"}]},
-  {"messages": [{"role": "user", "content": "Gracias por la información, adiós."}, {"role": "assistant", "content": "¡Con mucho gusto! Nos vemos pronto. ¡Cuídate!"}]},
-  {"messages": [{"role": "user", "content": "Ya no tengo más dudas, bye."}, {"role": "assistant", "content": "Perfecto, quedo a tus órdenes. ¡Adiós!"}]},
-  {"messages": [{"role": "user", "content": "Nos vemos, gracias por todo."}, {"role": "assistant", "content": "¡Con gusto! Que todo salga bien. ¡Hasta pronto!"}]},
-  {"messages": [{"role": "user", "content": "Hasta la próxima."}, {"role": "assistant", "content": "¡Claro que sí! Hasta pronto. ¡Cuídate mucho!"}]},
-  {"messages": [{"role": "user", "content": "Adiós, ya tengo lo que necesitaba."}, {"role": "assistant", "content": "¡Me alegra haber ayudado! Que tengas un excelente día. ¡Hasta luego!"}]},
-  {"messages": [{"role": "user", "content": "Bueno, eso sería todo."}, {"role": "assistant", "content": "¡Perfecto! Gracias por tu tiempo. ¡Nos vemos pronto!"}]},
-  {"messages": [{"role": "user", "content": "Hasta luego, buen día."}, {"role": "assistant", "content": "Gracias, igualmente. ¡Hasta luego!"}]},
-  {"messages": [{"role": "user", "content": "Ya no tengo dudas, bye bye."}, {"role": "assistant", "content": "¡Genial! Nos vemos pronto. ¡Adiós!"}]},
-  {"messages": [{"role": "user", "content": "Gracias por todo, ya me voy."}, {"role": "assistant", "content": "¡Con mucho gusto! Que tengas un buen día. ¡Hasta luego!"}]},
-  {"messages": [{"role": "user", "content": "Creo que eso es todo, bye."}, {"role": "assistant", "content": "¡Claro! Nos vemos pronto. ¡Cuídate!"}]},
-  {"messages": [{"role": "user", "content": "Bueno, hasta aquí llegamos."}, {"role": "assistant", "content": "Perfecto, gracias por tu tiempo. ¡Hasta luego!"}]},
-  {"messages": [{"role": "user", "content": "Gracias, ya me quedó claro."}, {"role": "assistant", "content": "¡Qué bueno! Me alegra haber ayudado. ¡Adiós!"}]},
-  {"messages": [{"role": "user", "content": "Adiós, muchas gracias."}, {"role": "assistant", "content": "¡De nada! Que tengas un gran día. ¡Hasta luego!"}]},
-  {"messages": [{"role": "user", "content": "Hasta luego y gracias."}, {"role": "assistant", "content": "Con mucho gusto, ¡hasta luego!"}]}
+{"messages": [{"role": "user", "content": "Gracias, eso sería todo."}, {"role": "assistant", "content": "Perfecto, gracias por tu tiempo. Que tengas un excelente día. ¡Hasta luego!"}]}
+{"messages": [{"role": "user", "content": "Nos hablamos luego."}, {"role": "assistant", "content": "Claro que sí, quedo a tus órdenes. ¡Hasta pronto!"}]}
+{"messages": [{"role": "user", "content": "Adiós, gracias."}, {"role": "assistant", "content": "¡De nada! Que tengas un gran día. ¡Adiós!"}]}
+{"messages": [{"role": "user", "content": "Creo que eso es todo, hasta luego."}, {"role": "assistant", "content": "Muy bien, gracias por tu tiempo. ¡Hasta luego!"}]}
+{"messages": [{"role": "user", "content": "Eso es todo, muchas gracias."}, {"role": "assistant", "content": "Con gusto, gracias a ti. Que tengas un excelente día. ¡Hasta la próxima!"}]}
+{"messages": [{"role": "user", "content": "Gracias por la información, adiós."}, {"role": "assistant", "content": "¡Con mucho gusto! Nos vemos pronto. ¡Cuídate!"}]}
+{"messages": [{"role": "user", "content": "Ya no tengo más dudas, bye."}, {"role": "assistant", "content": "Perfecto, quedo a tus órdenes. ¡Adiós!"}]}
+{"messages": [{"role": "user", "content": "Nos vemos, gracias por todo."}, {"role": "assistant", "content": "¡Con gusto! Que todo salga bien. ¡Hasta pronto!"}]}
+{"messages": [{"role": "user", "content": "Hasta la próxima."}, {"role": "assistant", "content": "¡Claro que sí! Hasta pronto. ¡Cuídate mucho!"}]}
+{"messages": [{"role": "user", "content": "Adiós, ya tengo lo que necesitaba."}, {"role": "assistant", "content": "¡Me alegra haber ayudado! Que tengas un excelente día. ¡Hasta luego!"}]}
+{"messages": [{"role": "user", "content": "Bueno, eso sería todo."}, {"role": "assistant", "content": "¡Perfecto! Gracias por tu tiempo. ¡Nos vemos pronto!"}]}
+{"messages": [{"role": "user", "content": "Hasta luego, buen día."}, {"role": "assistant", "content": "Gracias, igualmente. ¡Hasta luego!"}]}
+{"messages": [{"role": "user", "content": "Ya no tengo dudas, bye bye."}, {"role": "assistant", "content": "¡Genial! Nos vemos pronto. ¡Adiós!"}]}
+{"messages": [{"role": "user", "content": "Gracias por todo, ya me voy."}, {"role": "assistant", "content": "¡Con mucho gusto! Que tengas un buen día. ¡Hasta luego!"}]}
+{"messages": [{"role": "user", "content": "Creo que eso es todo, bye."}, {"role": "assistant", "content": "¡Claro! Nos vemos pronto. ¡Cuídate!"}]}
+{"messages": [{"role": "user", "content": "Bueno, hasta aquí llegamos."}, {"role": "assistant", "content": "Perfecto, gracias por tu tiempo. ¡Hasta luego!"}]}
+{"messages": [{"role": "user", "content": "Gracias, ya me quedó claro."}, {"role": "assistant", "content": "¡Qué bueno! Me alegra haber ayudado. ¡Adiós!"}]}
+{"messages": [{"role": "user", "content": "Adiós, muchas gracias."}, {"role": "assistant", "content": "¡De nada! Que tengas un gran día. ¡Hasta luego!"}]}
+{"messages": [{"role": "user", "content": "Hasta luego y gracias."}, {"role": "assistant", "content": "Con mucho gusto, ¡hasta luego!"}]}
