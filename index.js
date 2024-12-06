@@ -6,6 +6,7 @@ const dotenv = require('dotenv');
 const { OpenAI } = require('openai');
 const path = require('path');
 const { v4: uuidv4 } = require('uuid'); // Para generar nombres únicos de archivos
+const cors = require('cors');
 
 const app = express();
 const port = 3000;
@@ -31,6 +32,7 @@ if (!fs.existsSync(publicDir)) {
   fs.mkdirSync(publicDir, { recursive: true });
   console.log('Directorio "public" creado.');
 }
+app.use(cors()); // Permite todas las solicitudes de cualquier origen
 
 // Configurar Express para servir archivos estáticos desde el directorio público
 app.use('/public', express.static(publicDir));
