@@ -198,10 +198,11 @@ fastify.post('/make-call', (req, res) => {
     });
 });
 
-fastify.listen(10000, '0.0.0.0', (err) => {
-  if (err) {
-      console.error(err);
-      process.exit(1);
-  }
-  console.log(`Servidor escuchando en el puerto 10000`);
+const PORT = process.env.PORT || 10000;
+fastify.listen(PORT, '0.0.0.0', (err) => {
+    if (err) {
+        console.error(err);
+        process.exit(1);
+    }
+    console.log(`Servidor escuchando en el puerto ${PORT}`);
 });
