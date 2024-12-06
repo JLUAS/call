@@ -198,7 +198,7 @@ fastify.post('/make-call', (req, res) => {
     });
 });
 
-const PORT = process.env.PORT || 10000;
+const PORT = parseInt(process.env.PORT, 10) || 10000;  // Asegúrate de convertirlo a un número
 fastify.listen(PORT, '0.0.0.0', (err) => {
     if (err) {
         console.error(err);
