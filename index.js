@@ -297,14 +297,16 @@
 //     }
 //     console.log(`Server is listening on port ${PORT}`);
 // });
-const WebSocket = require('ws');
-const PORT = process.env.PORT || 3000;
-const wss = new WebSocket.Server({ port: PORT });
+import WebSocket from 'ws';
 
-wss.on('connection', ws => {
-  ws.on('message', message => {
-    console.log(`Received message => ${message}`);
-  });
-  ws.send('Hello! Message From Server!!');
+const ws = new WebSocket('ws://call-t0fi.onrender.com');
+
+ws.on('error', console.error);
+
+ws.on('open', function open() {
+  ws.send('something');
 });
 
+ws.on('message', function message(data) {
+  console.log('received: %s', data);
+});
