@@ -52,17 +52,19 @@ const wss = new WebSocket.Server({ server });
 
 wss.on('connection', (ws) => {
   console.log('Nuevo cliente WebSocket conectado');
-  websocketManager.setWebSocket(ws);
-
+  ws.on('message', (message) => {
+    console.log(`Mensaje recibido del cliente WebSocket: ${message}`);
+    // Procesa el mensaje aquí
+  });
   ws.on('close', () => {
     console.log('Cliente WebSocket desconectado');
-    websocketManager.setWebSocket(null);
   });
 });
 
 
+
   app.post('/process-speech', async (req, res) => {
-    wss.on('connection',async wss => {
+    if(wss.clients.size > 0){
       const userSpeech = req.body.SpeechResult; // Entrada del usuario transcrita por Twilio
       console.log(`Usuario dijo: ${userSpeech}`);
     
@@ -137,7 +139,7 @@ wss.on('connection', (ws) => {
         res.type('text/xml');
         res.send(response.toString());
       }
-    })
+    }
   });
 
 // Ruta para procesar la respuesta de Twilio (entrada de voz)
