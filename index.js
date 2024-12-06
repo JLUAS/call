@@ -4,8 +4,11 @@ import dotenv from 'dotenv';
 import fastifyFormBody from '@fastify/formbody';
 import fastifyWs from '@fastify/websocket';
 
+import twilio from 'twilio'
 // Cargar las variables de entorno desde el archivo .env
 dotenv.config();
+const accountSid = process.env.TWILIO_ACCOUNT_SID;
+const authToken = process.env.TWILIO_AUTH_TOKEN;
 
 // Recuperar la clave de OpenAI desde las variables de entorno
 const { OPENAI_API_KEY } = process.env;
@@ -19,6 +22,7 @@ if (!OPENAI_API_KEY) {
 const fastify = Fastify();
 fastify.register(fastifyFormBody);
 fastify.register(fastifyWs);
+const client = new twilio(accountSid, authToken);
 
 // Constantes
 const SYSTEM_MESSAGE = 'Eres un asistente útil y alegre que ama charlar sobre cualquier tema de interés del usuario, y está preparado para ofrecerles datos. Tienes predilección por los chistes de papá, los chistes de búhos y hacer "rickrolling" de forma sutil. Siempre mantén una actitud positiva, pero haz una broma cuando sea apropiado.';
@@ -181,7 +185,7 @@ fastify.post('/make-call', (req, res) => {
   client.calls.create({
     to: '+528662367673', // Número de destino proporcionado
     from: twilioPhoneNumber, // Tu número de Twilio
-    url: 'https://call-t0fi.onrender.com/voice', // URL que Twilio usará para obtener las instrucciones
+    url: 'https://call-t0fi.onrender.com/incoming-call', // URL que Twilio usará para obtener las instrucciones
   })
     .then(call => {
       console.log('Llamada realizada con SID: ${call.sid}');
