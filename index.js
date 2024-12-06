@@ -62,7 +62,7 @@ wss.on('connection', (ws) => {
 
 
   app.post('/process-speech', async (req, res) => {
-    wss.on('connection',wss => {
+    wss.on('connection',async wss => {
       const userSpeech = req.body.SpeechResult; // Entrada del usuario transcrita por Twilio
       console.log(`Usuario dijo: ${userSpeech}`);
     
