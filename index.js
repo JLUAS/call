@@ -300,10 +300,11 @@ fastify.register(async (fastify) => {
     });
 });
 
-fastify.listen({ port: PORT }, (err) => {
+const port = process.env.PORT || 3000;
+fastify.listen(port, '0.0.0.0', (err, address) => {
     if (err) {
         console.error(err);
         process.exit(1);
     }
-    console.log(`Server is listening on port ${PORT}`);
+    console.log(`Server listening at ${address}`);
 });
