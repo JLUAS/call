@@ -200,8 +200,10 @@ fastify.post('/make-call', (req, res) => {
 });
 
 const PORT = parseInt(process.env.PORT, 10) || 3000;  // Asegúrate de convertirlo a un número
-
-// Inicia el servidor
-fastify.listen(PORT, () => {
-  console.log(`Servidor corriendo en http://localhost:${port}`);
+fastify.listen(PORT, '0.0.0.0', (err) => {
+    if (err) {
+        console.error(err);
+        process.exit(1);
+    }
+    console.log(`Servidor escuchando en el puerto ${PORT}`);
 });
