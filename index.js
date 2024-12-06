@@ -147,11 +147,11 @@ app.post('/voice', async (req, res) => {
       messages: [
         {
           role: 'system',
-          content: 'Eres un asistente del banco Choche. Tu misión es ofrecer soporte claro sobre las terminales de pago y atender al cliente de forma profesional.',
+          content: 'Eres un asistente del banco Santander. Tu misión es vender terminales y atender al cliente de forma profesional.',
         },
         {
           role: 'user',
-          content: 'Hola, soy tu asistente virtual. ¿En qué puedo ayudarte?',
+          content: 'Hola, buen día. Le llamo del banco Choche debido a que vimos que su negocio cumple las características para disponer de una terminal. ¿Con quién tengo el gusto?',
         },
       ],
     });
