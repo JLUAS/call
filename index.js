@@ -229,9 +229,3 @@ app.post('/make-call', (req, res) => {
       res.status(500).send({ error: 'Error al realizar la llamada', details: err });
     });
 });
-
-
-// Inicia el servidor
-app.listen(port, () => {
-  console.log(`Servidor corriendo en http://localhost:${port}`);
-});
