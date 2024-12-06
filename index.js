@@ -199,7 +199,7 @@ fastify.post('/make-call', (req, res) => {
 });
 
 const PORT = parseInt(process.env.PORT, 10) || 3000;  // Asegúrate de convertirlo a un número
-fastify.listen(PORT, '0.0.0.0', (err) => {
+fastify.listen(3000, '0.0.0.0', (err) => {
     if (err) {
         console.error(err);
         process.exit(1);
