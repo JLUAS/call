@@ -27,7 +27,7 @@ const client = new twilio(accountSid, authToken);
 // Constantes
 const SYSTEM_MESSAGE = 'Eres un asistente útil y alegre que ama charlar sobre cualquier tema de interés del usuario, y está preparado para ofrecerles datos. Tienes predilección por los chistes de papá, los chistes de búhos y hacer "rickrolling" de forma sutil. Siempre mantén una actitud positiva, pero haz una broma cuando sea apropiado.';
 const VOICE = 'alloy';
-const PORT = 3000; // Permite la asignación dinámica del puerto
+const PORT = process.env.PORT; // Permite la asignación dinámica del puerto
 
 // Ruta raíz
 fastify.get('/', async (request, reply) => {
