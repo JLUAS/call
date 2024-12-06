@@ -51,83 +51,95 @@ const server = app.listen(port, () => {
 const wss = new WebSocket.Server({ server });
 
 wss.on('connection', (ws) => {
-  app.post('/process-speech', async (req, res) => {
-    const userSpeech = req.body.SpeechResult; // Entrada del usuario transcrita por Twilio
-    console.log(`Usuario dijo: ${userSpeech}`);
-  
-    const despedidas = [
-      "adiós", "hasta luego", "nos vemos", "bye", "me voy", "gracias, adiós", 
-      "eso es todo, hasta luego", "ya terminé, gracias", "me tengo que ir"
-    ];
-  
-    let botResponse = '';
-  
-    try {
-      // Mantener el flujo natural de la conversación con GPT-3
-      const gptResponse = await openai.chat.completions.create({
-        model: model, // Cambia por tu modelo fine-tuned
-        messages: [
-          { role: 'system', content: 'Eres un asistente del banco Choche especializado en terminales de pago. Tu misión es ofrecer información clara y precisa sobre las terminales del banco, resolver dudas comunes y destacar sus beneficios frente a la competencia. Actúas como un asesor profesional que guía al cliente en la elección de la mejor solución para su negocio. Mantén siempre un tono cordial, profesional y persuasivo, pero sin ser invasivo. Si el cliente no está interesado, termina la conversación de manera educada y agradable.' },
-          { role: 'user', content: userSpeech },
-        ],
-      });
-  
-      botResponse = gptResponse.choices[0].message.content;
-      console.log(`Respuesta generada por ChatGPT: ${botResponse}`);
-  
-      // Llamada a la API de OpenAI para generar el audio de la respuesta
-      const audioResponse = await fetch('https://api.openai.com/v1/audio/speech', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${apiKey}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: 'tts-1',
-          voice: 'shimmer',
-          input: botResponse,
-        }),
-      });
-  
-      const audioBuffer = await audioResponse.buffer();
-  
-      // Generar un nombre único para el archivo de audio
-      const audioFileName = `${uuidv4()}.mp3`;
-      const audioFilePath = path.join(publicDir, audioFileName); // Guardar en el directorio "public"
-      
-      // Guardar el audio generado en el directorio público
-      fs.writeFileSync(audioFilePath, audioBuffer);
-      console.log(`Audio guardado en: ${audioFilePath}`);
-  
-      // Responder al usuario con el audio generado
-      const response = new VoiceResponse();
-      response.play(`https://call-t0fi.onrender.com/public/${audioFileName}`); // Reproducir el archivo de audio
-  
-      // Continuar la conversación si es necesario
-      response.gather({
-        input: 'speech',
-        action: '/process-speech', // Acción para continuar procesando la entrada
-        language: 'es-MX',
-        timeout: 2, // Tiempo de espera para una respuesta del usuario
-      });
-  
-      res.type('text/xml');
-      res.send(response.toString());
-      // Verificar si la entrada del usuario contiene una despedida
-      if (despedidas.some(despedida => userSpeech.includes(despedida))) {
-        return;
-      }  
-    } catch (error) {
-      console.error('Error al generar respuesta:', error);
-  
-      const response = new VoiceResponse();
-      response.say({ voice: 'alice', language: 'es-MX' }, 'Lo siento, hubo un problema. Por favor, intenta de nuevo.');
-  
-      res.type('text/xml');
-      res.send(response.toString());
-    }
+  console.log('Nuevo cliente WebSocket conectado');
+  websocketManager.setWebSocket(ws);
+
+  ws.on('close', () => {
+    console.log('Cliente WebSocket desconectado');
+    websocketManager.setWebSocket(null);
   });
-})
+});
+
+
+  app.post('/process-speech', async (req, res) => {
+    wss.on('connection',wss => {
+      const userSpeech = req.body.SpeechResult; // Entrada del usuario transcrita por Twilio
+      console.log(`Usuario dijo: ${userSpeech}`);
+    
+      const despedidas = [
+        "adiós", "hasta luego", "nos vemos", "bye", "me voy", "gracias, adiós", 
+        "eso es todo, hasta luego", "ya terminé, gracias", "me tengo que ir"
+      ];
+    
+      let botResponse = '';
+    
+      try {
+        // Mantener el flujo natural de la conversación con GPT-3
+        const gptResponse = await openai.chat.completions.create({
+          model: model, // Cambia por tu modelo fine-tuned
+          messages: [
+            { role: 'system', content: 'Eres un asistente del banco Choche especializado en terminales de pago. Tu misión es ofrecer información clara y precisa sobre las terminales del banco, resolver dudas comunes y destacar sus beneficios frente a la competencia. Actúas como un asesor profesional que guía al cliente en la elección de la mejor solución para su negocio. Mantén siempre un tono cordial, profesional y persuasivo, pero sin ser invasivo. Si el cliente no está interesado, termina la conversación de manera educada y agradable.' },
+            { role: 'user', content: userSpeech },
+          ],
+        });
+    
+        botResponse = gptResponse.choices[0].message.content;
+        console.log(`Respuesta generada por ChatGPT: ${botResponse}`);
+    
+        // Llamada a la API de OpenAI para generar el audio de la respuesta
+        const audioResponse = await fetch('https://api.openai.com/v1/audio/speech', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${apiKey}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            model: 'tts-1',
+            voice: 'shimmer',
+            input: botResponse,
+          }),
+        });
+    
+        const audioBuffer = await audioResponse.buffer();
+    
+        // Generar un nombre único para el archivo de audio
+        const audioFileName = `${uuidv4()}.mp3`;
+        const audioFilePath = path.join(publicDir, audioFileName); // Guardar en el directorio "public"
+        
+        // Guardar el audio generado en el directorio público
+        fs.writeFileSync(audioFilePath, audioBuffer);
+        console.log(`Audio guardado en: ${audioFilePath}`);
+    
+        // Responder al usuario con el audio generado
+        const response = new VoiceResponse();
+        response.play(`https://call-t0fi.onrender.com/public/${audioFileName}`); // Reproducir el archivo de audio
+    
+        // Continuar la conversación si es necesario
+        response.gather({
+          input: 'speech',
+          action: '/process-speech', // Acción para continuar procesando la entrada
+          language: 'es-MX',
+          timeout: 2, // Tiempo de espera para una respuesta del usuario
+        });
+    
+        res.type('text/xml');
+        res.send(response.toString());
+        // Verificar si la entrada del usuario contiene una despedida
+        if (despedidas.some(despedida => userSpeech.includes(despedida))) {
+          return;
+        }  
+      } catch (error) {
+        console.error('Error al generar respuesta:', error);
+    
+        const response = new VoiceResponse();
+        response.say({ voice: 'alice', language: 'es-MX' }, 'Lo siento, hubo un problema. Por favor, intenta de nuevo.');
+    
+        res.type('text/xml');
+        res.send(response.toString());
+      }
+    })
+  });
+
 // Ruta para procesar la respuesta de Twilio (entrada de voz)
 
 // Ruta para hacer la llamada saliente
