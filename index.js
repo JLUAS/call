@@ -3,13 +3,9 @@ import WebSocket from 'ws';
 import dotenv from 'dotenv';
 import fastifyFormBody from '@fastify/formbody';
 import fastifyWs from '@fastify/websocket';
-import fastifyCors from '@fastify/cors';
-
-import Twilio from 'twilio';
-
-const TWILIO_ACCOUNT_SID = process.env.TWILIO_ACCOUNT_SID;
-const TWILIO_AUTH_TOKEN = process.env.TWILIO_AUTH_TOKEN;
-const twilioPhoneNumber = process.env.TWILIO_PHONE_NUMBER;
+import twilio from 'twilio';
+const { TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_PHONE_NUMBER } = process.env;
+const client = twilio(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN);
 // Load environment variables from .env file
 dotenv.config();
 
@@ -17,8 +13,8 @@ dotenv.config();
 const { OPENAI_API_KEY } = process.env;
 
 if (!OPENAI_API_KEY) {
-  console.error('Missing OpenAI API key. Please set it in the .env file.');
-  process.exit(1);
+    console.error('Missing OpenAI API key. Please set it in the .env file.');
+    process.exit(1);
 }
 
 // Initialize Fastify
@@ -26,12 +22,10 @@ const fastify = Fastify();
 fastify.register(fastifyFormBody);
 fastify.register(fastifyWs);
 
-fastify.register(fastifyCors, { origin: '*' });
 // Constants
 const SYSTEM_MESSAGE = 'You are a helpful and bubbly AI assistant who loves to chat about anything the user is interested about and is prepared to offer them facts. You have a penchant for dad jokes, owl jokes, and rickrolling – subtly. Always stay positive, but work in a joke when appropriate.';
 const VOICE = 'alloy';
-const PORT = process.env.PORT || 5050; // Allow dynamic port assignment
-const client = Twilio(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN);
+const PORT =  5050; // Allow dynamic port assignment
 
 // List of Event Types to log to the console. See the OpenAI Realtime API Documentation: https://platform.openai.com/docs/api-reference/realtime
 const LOG_EVENT_TYPES = [
@@ -53,34 +47,31 @@ fastify.get('/', async (request, reply) => {
     reply.send({ message: 'Twilio Media Stream Server is running!' });
 });
 
-// Route for Twilio to handle incoming calls
-// <Say> punctuation to improve text-to-speech translation
-fastify.post('/start-call', async (request, reply) => {
-    const { to } = request.body; // The recipient's phone number
+// Trigger an outbound call route
+fastify.post('/trigger-call', async (request, reply) => {
+  const { toPhoneNumber } = request.body;
 
-    if (!to) {
-        return reply.status(400).send({ error: 'Recipient phone number ("to") is required.' });
-    }
+  if (!toPhoneNumber) {
+      return reply.status(400).send({ message: 'Missing phone number' });
+  }
 
-    try {
-      console.log('TWILIO_PHONE_NUMBER:', process.env.TWILIO_PHONE_NUMBER);
-      const from = twilioPhoneNumber;
+  try {
+      const call = await client.calls.create({
+          to: toPhoneNumber, // The phone number to call
+          from: TWILIO_PHONE_NUMBER, // Your Twilio phone number
+          url: `http://your-server-url/incoming-call` // URL that Twilio will call once the user picks up (should be the same as your '/incoming-call' route)
+      });
 
-        const call = await client.calls.create({
-            url: `http://${request.headers.host}/incoming-call`, // The URL for your Twilio XML response
-            to :'+528662367373', // The recipient's phone number
-            from: '+16814774396' // Your Twilio phone number from the environment variable
-        });
-
-        reply.send({ message: 'Call initiated successfully', callSid: call.sid });
-    } catch (error) {
-        console.error('Error initiating call:', error);
-        reply.status(500).send({ error: 'Failed to initiate call', details: error.message });
-    }
+      console.log('Call initiated with SID:', call.sid);
+      reply.send({ message: 'Call triggered successfully', sid: call.sid });
+  } catch (error) {
+      console.error('Error triggering the call:', error);
+      reply.status(500).send({ message: 'Failed to trigger the call' });
+  }
 });
 
-
-
+// Route for Twilio to handle incoming calls
+// <Say> punctuation to improve text-to-speech translation
 fastify.all('/incoming-call', async (request, reply) => {
     const twimlResponse = `<?xml version="1.0" encoding="UTF-8"?>
                           <Response>
@@ -97,7 +88,6 @@ fastify.all('/incoming-call', async (request, reply) => {
 
 // WebSocket route for media-stream
 fastify.register(async (fastify) => {
-  // Endpoint to initiate an outgoing call
     fastify.get('/media-stream', { websocket: true }, (connection, req) => {
         console.log('Client connected');
 
