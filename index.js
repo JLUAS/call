@@ -2,6 +2,7 @@ import express from 'express';
 import WebSocket from 'ws';
 import dotenv from 'dotenv';
 import twilio from 'twilio';
+import WebSocket from 'ws';  // Make sure you're using 'ws' properly
 
 // Cargar las variables de entorno desde el archivo .env
 dotenv.config();
