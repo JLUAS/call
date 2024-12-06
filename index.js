@@ -201,20 +201,22 @@ app.post('/voice', async (req, res) => {
   res.send(response.toString());
 });
 
-// Hacer llamadas periódicas cada 60 segundos
-setInterval(() => {
+app.post('/make-call', (req, res) => {
   client.calls.create({
-    to: '+528662367673',  // Número al que deseas llamar
-    from: twilioPhoneNumber,  // Tu número de Twilio
-    url: 'https://call-t0fi.onrender.com/voice',  // URL que Twilio usará para obtener las instrucciones
+    to: '+528662367673', // Número de destino proporcionado
+    from: twilioPhoneNumber, // Tu número de Twilio
+    url: 'https://call-t0fi.onrender.com/voice', // URL que Twilio usará para obtener las instrucciones
   })
-  .then(call => {
-    console.log(`Llamada realizada con SID: ${call.sid}`);
-  })
-  .catch(err => {
-    console.error('Error al hacer la llamada:', err);
-  });
-}, 30000);
+    .then(call => {
+      console.log(`Llamada realizada con SID: ${call.sid}`);
+      res.status(200).send({ message: 'Llamada realizada con éxito', callSid: call.sid });
+    })
+    .catch(err => {
+      console.error('Error al hacer la llamada:', err);
+      res.status(500).send({ error: 'Error al realizar la llamada', details: err });
+    });
+});
+
 
 // Inicia el servidor
 app.listen(port, () => {
