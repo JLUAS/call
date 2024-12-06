@@ -59,7 +59,7 @@ fastify.post('/trigger-call', async (request, reply) => {
       const call = await client.calls.create({
           to: toPhoneNumber, // The phone number to call
           from: TWILIO_PHONE_NUMBER, // Your Twilio phone number
-          url: `http://your-server-url/incoming-call` // URL that Twilio will call once the user picks up (should be the same as your '/incoming-call' route)
+          url: `wss://${request.headers.host}/incoming-call` // URL that Twilio will call once the user picks up (should be the same as your '/incoming-call' route)
       });
 
       console.log('Call initiated with SID:', call.sid);
