@@ -297,16 +297,20 @@
 //     }
 //     console.log(`Server is listening on port ${PORT}`);
 // });
-import WebSocket from 'ws';
+// importamos las librerías requeridas
+const http = require('http').createServer();
 
-const ws = new WebSocket('ws://call-t0fi.onrender.com');
-
-ws.on('error', console.error);
-
-ws.on('open', function open() {
-  ws.send('something');
+const io = require('socket.io')(http, {
+    cors: { origin: "*" }
 });
 
-ws.on('message', function message(data) {
-  console.log('received: %s', data);
+io.on('connection', (socket) => {
+    console.log('a user connected');
+
+    socket.on('message', (message) =>     {
+        console.log(message);
+        io.emit('message', `${socket.id.substr(0,2)} said ${message}` );   
+    });
 });
+
+http.listen(8080, () => console.log('listening on http://localhost:8080') );
