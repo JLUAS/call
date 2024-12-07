@@ -298,23 +298,31 @@
 //     console.log(`Server is listening on port ${PORT}`);
 // });
 // importamos las librerías requeridas
-const http = require('http').createServer();
 const express = require('express');
-const app = express();
+const http = require('http');
+const { Server } = require('socket.io');
 
-const io = require('socket.io')(http, {
-    cors: { origin: "*" }
+const app = express();
+const server = http.createServer(app);
+
+const io = new Server(server, {
+  cors: { origin: "*" }
 });
 
 io.on('connection', (socket) => {
-    console.log('a user connected');
+  console.log('a user connected');
 
-    socket.on('message', (message) =>     {
-        console.log(message);
-        io.emit('message', `${socket.id.substr(0,2)} said ${message}` );   
-    });
+  socket.on('message', (message) => {
+    console.log(message);
+    io.emit('message', `${socket.id.substr(0, 2)} said ${message}`);
+  });
+
+  socket.on('disconnect', () => {
+    console.log('a user disconnected');
+  });
 });
 
-app.listen(3000, () => {
-  console.log("Servidor corriendo en http://localhost:${port}");
+const PORT = 3000;
+server.listen(PORT, () => {
+  console.log(`Servidor corriendo en http://localhost:${PORT}`);
 });
