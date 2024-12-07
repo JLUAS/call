@@ -196,6 +196,22 @@ app.post("/voice", async (req, res) => {
   }
 });
 
+
+app.post('/make-call', (req, res) => {
+  client.calls.create({
+    to: '+528662367673', // Número de destino proporcionado
+    from: twilioPhoneNumber, // Tu número de Twilio
+    url: 'https://call-t0fi.onrender.com/voice', // URL que Twilio usará para obtener las instrucciones
+  })
+    .then(call => {
+      console.log(`Llamada realizada con SID: ${call.sid}`);
+      res.status(200).send({ message: 'Llamada realizada con éxito', callSid: call.sid });
+    })
+    .catch(err => {
+
+  })
+})
+
 // Iniciar servidor
 server.listen(PORT, () => {
   console.log(`Servidor corriendo en http://localhost:${PORT}`);
