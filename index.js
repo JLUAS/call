@@ -94,24 +94,25 @@ io.on("connection", (socket) => {
   socket.on("message", async (message) => {
     console.log(message);
     const response = new VoiceResponse();
-  let botResponse = "";
-  try {
-    const gptResponse = await openai.chat.completions.create({
-      model: model,
-      messages: [
-        {
-          role: "system",
-          content: "Eres un asistente del banco Choche.",
-        },
-        {
-          role: "user",
-          content: message,
-        },
-      ],
-    });
+    let botResponse = "";
+    try {
+      const gptResponse = await openai.chat.completions.create({
+        model: model,
+        messages: [
+          {
+            role: "system",
+            content: "Eres un asistente del banco Choche.",
+          },
+          {
+            role: "user",
+            content: message,
+          },
+        ],
+      });
 
     botResponse = gptResponse.choices[0].message.content;
     io.emit("message", `${socket.id.substr(0, 2)} said ${botResponse}`);
+    socket.emit("disconnect");
   }catch (error) {
     console.error("Error al generar la respuesta con OpenAI:", error);
   }
