@@ -45,6 +45,46 @@ app.use(express.urlencoded({ extended: false }));
 io.on("connection", (socket) => {
   console.log("a user connected");
 
+  io.on("connection", (socket) => {
+    console.log("Usuario conectado con ID:", socket.id);
+  
+    // Escuchar eventos de cliente
+    socket.on("start-call", async (data) => {
+      console.log("Inicio de llamada solicitado:", data);
+  
+      try {
+        // Realizar la llamada usando Twilio
+        const call = await client.calls.create({
+          to: data.to, // Número de destino
+          from: twilioPhoneNumber, // Número Twilio
+          url: "https://call-t0fi.onrender.com/voice", // URL para instrucciones
+        });
+  
+        console.log(`Llamada realizada con SID: ${call.sid}`);
+        socket.emit("call-started", { callSid: call.sid });
+      } catch (err) {
+        console.error("Error al realizar la llamada:", err);
+        socket.emit("call-error", { error: "Error al realizar la llamada" });
+      }
+    });
+  
+    // Evento para finalizar la llamada
+    socket.on("end-call", async (data) => {
+      console.log("Finalizar llamada solicitado para SID:", data.callSid);
+      try {
+        await client.calls(data.callSid).update({ status: "completed" });
+        socket.emit("call-ended", { message: "Llamada finalizada correctamente" });
+      } catch (err) {
+        console.error("Error al finalizar la llamada:", err);
+        socket.emit("call-error", { error: "Error al finalizar la llamada" });
+      }
+    });
+  
+    socket.on("disconnect", () => {
+      console.log("Usuario desconectado:", socket.id);
+    });
+  });
+
   socket.on("message", (message) => {
     console.log(message);
     io.emit("message", `${socket.id.substr(0, 2)} said ${message}`);
@@ -195,7 +235,6 @@ app.post("/voice", async (req, res) => {
     res.send(response.toString());
   }
 });
-
 
 app.post('/make-call', (req, res) => {
   client.calls.create({
