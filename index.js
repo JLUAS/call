@@ -57,7 +57,7 @@ io.on("connection", (socket) => {
         const call = await client.calls.create({
           to: data.to, // Número de destino
           from: twilioPhoneNumber, // Número Twilio
-          url: "https://call-t0fi.onrender.com/voice", // URL para instrucciones
+          url: "https://call-t0fi.onrender.com/process-speech", // URL para instrucciones
         });
   
         console.log(`Llamada realizada con SID: ${call.sid}`);
@@ -67,6 +67,12 @@ io.on("connection", (socket) => {
         socket.emit("call-error", { error: "Error al realizar la llamada" });
       }
     });
+
+    socket.on("process-speech", async (data) => {
+      console.log("Inicio de process-speech:", data);
+    });
+
+
   
     // Evento para finalizar la llamada
     socket.on("end-call", async (data) => {
