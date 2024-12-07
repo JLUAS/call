@@ -299,6 +299,8 @@
 // });
 // importamos las librerías requeridas
 const http = require('http').createServer();
+const express = require('express');
+const app = express();
 
 const io = require('socket.io')(http, {
     cors: { origin: "*" }
@@ -313,4 +315,6 @@ io.on('connection', (socket) => {
     });
 });
 
-http.listen(8080, '0.0.0.0', () => console.log('listening on http://0.0.0.0:8080'));
+app.listen(3000, () => {
+  console.log("Servidor corriendo en http://localhost:${port}");
+});
