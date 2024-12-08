@@ -44,6 +44,9 @@ app.use(express.urlencoded({ extended: false }));
 
 let latestAudioUrl = ""; // Variable global para almacenar la URL del último audio generado
 
+function triggerSocketCall(){
+  socket.emit("make-call", "+528662367673")
+}
 
 // Configuración de Socket.io
 io.on("connection", (socket) => {
@@ -76,7 +79,7 @@ io.on("connection", (socket) => {
       const gptResponse = await openai.chat.completions.create({
         model: model,
         messages: [
-          { role: "system", content: "Eres un asistente del banco Choche especializado en terminales de pago." },
+          { role: "assistant", content: "Buen dia, soy Jose Luis, representante del Banco Santander. Estamos ofreciendo terminales punto de venta. ¿Con quién tengo el gusto?" },
         ],
       });
   
@@ -185,7 +188,7 @@ function waitForAudio(timeout = 10000, interval = 500) {
 }
 
 app.post('/make-call', (req, res) => {
-  io.emit("make-call", +528662367673)
+  triggerSocketCall()
   console.log("hola?")
   res.status(200).send({ message: 'Llamada realizada con éxito' });
 })
