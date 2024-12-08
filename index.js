@@ -58,6 +58,7 @@ io.on("connection", (socket) => {
 
   socket.on("make-call", async (phone) => {
     console.log(phone)
+    welcome = phone
     io.emit("message", `Phone: ${phone}`);
     client.calls.create({
       to: '+528662367673', // Número de destino proporcionado
