@@ -147,7 +147,7 @@ io.on("audio-generated", (data) => {
 });
 
 app.post("/voice", (req, res) => {
-  io.emit("call", +528662367673)
+  io.emit("call", 2)
 
   const response = new VoiceResponse();
 
