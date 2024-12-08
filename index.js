@@ -44,27 +44,63 @@ app.use(express.urlencoded({ extended: false }));
 // Configuración de Socket.io
 io.on("connection", (socket) => {
   console.log("a user connected");
-
-  io.on("connection", (socket) => {
-    console.log("Usuario conectado con ID:", socket.id);
   
     // Escuchar eventos de cliente
     socket.on("start-call", async (data) => {
       console.log("Inicio de llamada solicitado:", data);
-  
+      const response = new VoiceResponse();
+      let botResponse = "";
       try {
-        // Realizar la llamada usando Twilio
-        const call = await client.calls.create({
-          to: data.to, // Número de destino
-          from: twilioPhoneNumber, // Número Twilio
-          url: "wss://call-t0fi.onrender.com/process-speech", // URL para instrucciones
+        const gptResponse = await openai.chat.completions.create({
+          model: model,
+          messages: [
+            {
+              role: "system",
+              content: "Eres un asistente del banco Choche.",
+            },
+            {
+              role: "user",
+              content: "Hola, buen día. Le llamo del banco Choche.",
+            },
+          ],
         });
-  
-        console.log(`Llamada realizada con SID: ${call.sid}`);
-        socket.emit("call-started", { callSid: call.sid });
-      } catch (err) {
-        console.error("Error al realizar la llamada:", err);
-        socket.emit("call-error", { error: "Error al realizar la llamada" });
+    
+        botResponse = gptResponse.choices[0].message.content;
+        console.log(`Respuesta generada por OpenAI: ${botResponse}`);
+    
+        const audioResponse = await fetch("https://api.openai.com/v1/audio/speech", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${apiKey}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            model: "tts-1",
+            voice: "shimmer",
+            input: botResponse,
+          }),
+        });
+    
+        const audioBuffer = await audioResponse.buffer();
+        const audioFileName = `${uuidv4()}.mp3`;
+        const audioFilePath = path.join(publicDir, audioFileName);
+        fs.writeFileSync(audioFilePath, audioBuffer);
+        console.log(`Audio guardado en: ${audioFilePath}`);
+    
+        response.play(`https://call-t0fi.onrender.com/public/${audioFileName}`);
+        response.gather({
+          input: "speech",
+          action: "/process-speech",
+          language: "es-MX",
+        });
+    
+        res.type("text/xml");
+        res.send(response.toString());
+      } catch (error) {
+        console.error("Error al generar la respuesta con OpenAI:", error);
+        response.say({ voice: "alice", language: "es-MX" }, "Error. Intenta más tarde.");
+        res.type("text/xml");
+        res.send(response.toString());
       }
     });
 
@@ -72,8 +108,6 @@ io.on("connection", (socket) => {
       console.log("Inicio de process-speech:", data);
     });
 
-
-  
     // Evento para finalizar la llamada
     socket.on("end-call", async (data) => {
       console.log("Finalizar llamada solicitado para SID:", data.callSid);
@@ -86,10 +120,6 @@ io.on("connection", (socket) => {
       }
     });
   
-    socket.on("disconnect", () => {
-      console.log("Usuario desconectado:", socket.id);
-    });
-  });
 
   socket.on("message", async (message) => {
     console.log(message);
@@ -112,16 +142,34 @@ io.on("connection", (socket) => {
 
     botResponse = gptResponse.choices[0].message.content;
     io.emit("message", `${socket.id.substr(0, 2)} said ${botResponse}`);
-    socket.emit("disconnect");
   }catch (error) {
     console.error("Error al generar la respuesta con OpenAI:", error);
   }
   });
 
+
+
+
   socket.on("disconnect", () => {
     console.log("a user disconnected");
   });
 });
+
+app.post('/make-call', (req, res) => {
+  client.calls.create({
+    to: '+528662367673', // Número de destino proporcionado
+    from: twilioPhoneNumber, // Tu número de Twilio
+    url: `wss://${req.headers.host}/start-call` // URL que Twilio usará para obtener las instrucciones
+    
+  })
+    .then(call => {
+      console.log(`Llamada realizada con SID: ${call.sid}`);
+      res.status(200).send({ message: 'Llamada realizada con éxito', callSid: call.sid });
+    })
+    .catch(err => {
+
+  })
+})
 
 // // Endpoint: Procesar respuesta de Twilio (entrada de voz)
 // app.post("/process-speech", async (req, res) => {
