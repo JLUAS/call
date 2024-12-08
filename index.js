@@ -143,6 +143,7 @@ io.on("connection", (socket) => {
   });
   socket.on("audio-generated", (data) => {
     console.log("Audio url changed")
+    console.log(data.audioUrl)
     console.log(`https://call-t0fi.onrender.com${data.audioUrl}`)
     latestAudioUrl = data.audioUrl;
   });
