@@ -215,8 +215,7 @@ app.post("/voice", async (req, res) => {
           action: "/voice",
           language: "es-MX",
         });
-        res.type("text/xml");
-        res.send(response.toString());
+        
         io.emit("process-speech-trigger")
         startProcess = true
         welcome = false
@@ -228,8 +227,7 @@ app.post("/voice", async (req, res) => {
           action: "/voice",
           language: "es-MX",
         });
-        res.type("text/xml");
-        res.send(response.toString());
+        
         if (despedidas.some((despedida) => userSpeech.includes(despedida))) {
           return;
         }
@@ -238,6 +236,8 @@ app.post("/voice", async (req, res) => {
       console.error("Error al esperar el audio:", error);
       response.say({ voice: "alice", language: "es-MX" }, "Hubo un error procesando tu solicitud.");
     }
+    res.type("text/xml");
+    res.send(response.toString());
 });
 
 // Iniciar servidor
