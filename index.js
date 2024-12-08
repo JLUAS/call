@@ -63,6 +63,7 @@ io.on("connection", (socket) => {
       .catch(err => {
         console.log("Error")
       })
+      socket.emit("Hola")
   })
 
   socket.on("call", async (text) => {
@@ -142,7 +143,7 @@ io.on("connection", (socket) => {
       });
 
     botResponse = gptResponse.choices[0].message.content;
-    io.emit("message", `${socket.id.substr(0, 2)} said ${botResponse}`);
+    io.emit("Bot", `${socket.id.substr(0, 2)} : ${botResponse}`);
   }catch (error) {
     console.error("Error al generar la respuesta con OpenAI:", error);
   }
