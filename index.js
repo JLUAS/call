@@ -98,7 +98,7 @@ io.on("connection", (socket) => {
       });
   
       const audioBuffer = await audioResponse.buffer();
-      const audioFileName = `${uuidv4()}.mp3`;
+      const audioFileName = `audio.mp3`;
       const audioFilePath = path.join(publicDir, audioFileName);
       fs.writeFileSync(audioFilePath, audioBuffer);
       console.log(`Audio guardado en: ${audioFilePath}`);
@@ -156,7 +156,7 @@ app.post("/voice", async (req, res) => {
   
   try {
     // Esperar hasta que la URL del audio esté disponible
-    response.play(`https://call-t0fi.onrender.com${latestAudioUrl}`);
+    response.play(`https://call-t0fi.onrender.com/public/audio.mp3`);
     response.gather({
       input: "speech",
       action: "/voice",
