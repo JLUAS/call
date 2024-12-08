@@ -60,7 +60,7 @@ io.on("connection", (socket) => {
     })
   })
 
-  socket.on("call"), async () => {
+  socket.on("call"), async (tri) => {
     const response = new VoiceResponse();
     let botResponse = "";
     try {
@@ -143,7 +143,7 @@ io.on("connection", (socket) => {
 });
 
 app.post("/voice", async (req, res) => {
-  io.emit("call")
+  io.emit("call", "tri")
 });
 
 app.post('/make-call', (req, res) => {
