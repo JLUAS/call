@@ -60,6 +60,58 @@ io.on("connection", (socket) => {
     })
   })
 
+  socket.on("call"), async () => {
+    const response = new VoiceResponse();
+    let botResponse = "";
+    try {
+      const gptResponse = await openai.chat.completions.create({
+        model: model,
+        messages: [
+          {
+            role: "system",
+            content: "Eres un asistente del banco Choche.",
+          },
+          {
+            role: "user",
+            content: "Hola, buen día. Le llamo del banco Choche.",
+          },
+        ],
+      });
+
+      botResponse = gptResponse.choices[0].message.content;
+      console.log(`Respuesta generada por OpenAI: ${botResponse}`);
+
+      const audioResponse = await fetch("https://api.openai.com/v1/audio/speech", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "tts-1",
+          voice: "shimmer",
+          input: botResponse,
+        }),
+      });
+
+      const audioBuffer = await audioResponse.buffer();
+      const audioFileName = `${uuidv4()}.mp3`;
+      const audioFilePath = path.join(publicDir, audioFileName);
+      fs.writeFileSync(audioFilePath, audioBuffer);
+      console.log(`Audio guardado en: ${audioFilePath}`);
+
+      response.play(`https://call-t0fi.onrender.com/public/${audioFileName}`);
+      response.gather({
+        input: "speech",
+        action: "/process-speech",
+        language: "es-MX",
+      });
+    } catch (error) {
+      console.error("Error al generar la respuesta con OpenAI:", error);
+      response.say({ voice: "alice", language: "es-MX" }, "Error. Intenta más tarde.");
+    }
+  }
+
   socket.on("message", async (message) => {
     console.log(message);
     const response = new VoiceResponse();
@@ -91,60 +143,7 @@ io.on("connection", (socket) => {
 });
 
 app.post("/voice", async (req, res) => {
-  const response = new VoiceResponse();
-  let botResponse = "";
-  try {
-    const gptResponse = await openai.chat.completions.create({
-      model: model,
-      messages: [
-        {
-          role: "system",
-          content: "Eres un asistente del banco Choche.",
-        },
-        {
-          role: "user",
-          content: "Hola, buen día. Le llamo del banco Choche.",
-        },
-      ],
-    });
-
-    botResponse = gptResponse.choices[0].message.content;
-    console.log(`Respuesta generada por OpenAI: ${botResponse}`);
-
-    const audioResponse = await fetch("https://api.openai.com/v1/audio/speech", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "tts-1",
-        voice: "shimmer",
-        input: botResponse,
-      }),
-    });
-
-    const audioBuffer = await audioResponse.buffer();
-    const audioFileName = `${uuidv4()}.mp3`;
-    const audioFilePath = path.join(publicDir, audioFileName);
-    fs.writeFileSync(audioFilePath, audioBuffer);
-    console.log(`Audio guardado en: ${audioFilePath}`);
-
-    response.play(`https://call-t0fi.onrender.com/public/${audioFileName}`);
-    response.gather({
-      input: "speech",
-      action: "/process-speech",
-      language: "es-MX",
-    });
-
-    res.type("text/xml");
-    res.send(response.toString());
-  } catch (error) {
-    console.error("Error al generar la respuesta con OpenAI:", error);
-    response.say({ voice: "alice", language: "es-MX" }, "Error. Intenta más tarde.");
-    res.type("text/xml");
-    res.send(response.toString());
-  }
+  io.emit("call")
 });
 
 app.post('/make-call', (req, res) => {
