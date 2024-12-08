@@ -60,7 +60,8 @@ io.on("connection", (socket) => {
     })
   })
 
-  socket.on("call"), async (tri) => {
+  socket.on(("call"), async (tri) => {
+    console.log("Llamada en ws call")
     const response = new VoiceResponse();
     let botResponse = "";
     try {
@@ -110,7 +111,7 @@ io.on("connection", (socket) => {
       console.error("Error al generar la respuesta con OpenAI:", error);
       response.say({ voice: "alice", language: "es-MX" }, "Error. Intenta más tarde.");
     }
-  }
+  })
 
   socket.on("message", async (message) => {
     console.log(message);
@@ -141,9 +142,10 @@ io.on("connection", (socket) => {
     console.log("a user disconnected");
   });
 });
-
 app.post("/voice", async (req, res) => {
-  io.emit("call", "tri")
+  io.emit("call", 2)
+  res.status(200).send({ message: 'Llamada realizada con éxito' });
+
 });
 
 app.post('/make-call', (req, res) => {
@@ -151,6 +153,7 @@ app.post('/make-call', (req, res) => {
   console.log("hola?")
   res.status(200).send({ message: 'Llamada realizada con éxito' });
 })
+
 
 // Iniciar servidor
 server.listen(PORT, () => {
