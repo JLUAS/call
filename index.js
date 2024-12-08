@@ -201,7 +201,7 @@ io.on("connection", (socket) => {
 
 app.post("/voice", async (req, res) => {
   const response = new VoiceResponse();
-  if(startProcess) console.log(req.body.SpeechResult);
+  if(startProcess) userSpeech =req.body.SpeechResult;
   
     try{
       if(welcome){
