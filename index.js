@@ -68,14 +68,7 @@ io.on("connection", (socket) => {
       const gptResponse = await openai.chat.completions.create({
         model: model,
         messages: [
-          {
-            role: "system",
-            content: "Eres un asistente del banco Choche.",
-          },
-          {
-            role: "user",
-            content: "Hola, buen día. Le llamo del banco Choche.",
-          },
+          { role: "system", content: "Eres un asistente del banco Choche especializado en terminales de pago." },
         ],
       });
 
@@ -104,7 +97,7 @@ io.on("connection", (socket) => {
       response.play(`https://call-t0fi.onrender.com/public/${audioFileName}`);
       response.gather({
         input: "speech",
-        action: "/process-speech",
+        action: "/voice",
         language: "es-MX",
       });
     } catch (error) {
@@ -145,7 +138,6 @@ io.on("connection", (socket) => {
 app.post("/voice", async (req, res) => {
   io.emit("call", 2)
   res.status(200).send({ message: 'Llamada realizada con éxito' });
-
 });
 
 app.post('/make-call', (req, res) => {
