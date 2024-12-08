@@ -209,6 +209,7 @@ app.post("/voice", async (req, res) => {
     // Esperar hasta que la URL del audio esté disponible
     if(welcome){
       response.play(`https://call-t0fi.onrender.com/public/${welcomeUrl}`);
+      welcome = false
     }else{
       response.play(`https://call-t0fi.onrender.com/public/${latestAudioUrl}`);
     }
