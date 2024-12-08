@@ -104,7 +104,7 @@ io.on("connection", (socket) => {
       console.log(`Audio guardado en: ${audioFilePath}`);
   
       // Emitir un evento con la ruta del archivo generado
-      socket.broadcast.emit("audio-generated", { audioUrl: `/public/${audioFileName}` });
+      socket.broadcast.emit("audio-generated", audioFileName );
   
     } catch (error) {
       console.error("Error en la generación de la respuesta:", error);
@@ -143,9 +143,9 @@ io.on("connection", (socket) => {
   });
   socket.on("audio-generated", (data) => {
     console.log("Audio url changed")
-    console.log(data.audioUrl)
-    console.log(`https://call-t0fi.onrender.com${data.audioUrl}`)
-    latestAudioUrl = data.audioUrl;
+    console.log(data)
+    console.log(`https://call-t0fi.onrender.com${data}`)
+    latestAudioUrl = data;
   });
 });
 
