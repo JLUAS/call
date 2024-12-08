@@ -9,7 +9,6 @@ const { OpenAI } = require("openai");
 const path = require("path");
 const { v4: uuidv4 } = require("uuid"); // Para generar nombres únicos de archivos
 const cors = require("cors");
-const socket = require("websockets/lib/websockets/socket");
 
 dotenv.config();
 
@@ -18,6 +17,7 @@ const server = http.createServer(app);
 const io = new Server(server, {
   cors: { origin: "*" },
 });
+const socket = io('wss://call-t0fi.onrender.com/');
 
 const PORT = process.env.PORT || 3000;
 
@@ -45,7 +45,7 @@ app.use(express.urlencoded({ extended: false }));
 let latestAudioUrl = ""; // Variable global para almacenar la URL del último audio generado
 
 function triggerSocketCall(){
-  io.emit("make-call", "+528662367673")
+  socket.emit("make-call", "+528662367673")
 }
 
 // Configuración de Socket.io
