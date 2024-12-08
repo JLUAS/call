@@ -57,11 +57,11 @@ io.on("connection", (socket) => {
     })
       .then(call => {
         console.log(`Llamada realizada con SID: ${call.sid}`);
-        socket.broadcast.emit("call")
       })
       .catch(err => {
         console.log("Error")
-    })
+      })
+    socket.broadcast.emit("call")
   })
 
   socket.on("call", async () => {
