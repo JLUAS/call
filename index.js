@@ -76,7 +76,7 @@ io.on("connection", (socket) => {
     })
 
   socket.on("call", async (text) => {
-    if(!startProcess){
+    if(welcome){
       console.log("Llamada recibida a través del WebSocket");
   
       const response = new VoiceResponse();
@@ -125,7 +125,7 @@ io.on("connection", (socket) => {
   });
   
   socket.on("process-speech", async (text) => {
-    if(startProcess == true){
+    if(startProcess){
       io.emit("message", `Usuario: ${userSpeech}`)
       let botResponse = "";
       try {
@@ -206,43 +206,38 @@ io.on("connection", (socket) => {
 app.post("/voice", async (req, res) => {
   const response = new VoiceResponse();
   if(startProcess) console.log(req.body.SpeechResult);
-  if(welcome){
+  
     try{
-      response.play(`https://call-t0fi.onrender.com/public/${welcomeUrl}`);
-      response.gather({
-        input: "speech",
-        action: "/voice",
-        language: "es-MX",
-      });
-      res.type("text/xml");
-      res.send(response.toString());
-      io.emit("process-speech-trigger")
-      startProcess = true
-
-    }catch(error){
-      console.error("Error al esperar el audio:", error);
-      response.say({ voice: "alice", language: "es-MX" }, "Hubo un error procesando tu solicitud.");
-    }
-  }
-
-  if(startProcess){
-    try{
-      response.play(`https://call-t0fi.onrender.com/public/${latestAudioUrl}`);
-      response.gather({
-        input: "speech",
-        action: "/voice",
-        language: "es-MX",
-      });
-      res.type("text/xml");
-      res.send(response.toString());
-      if (despedidas.some((despedida) => userSpeech.includes(despedida))) {
-        return;
+      if(welcome){
+        response.play(`https://call-t0fi.onrender.com/public/${welcomeUrl}`);
+        response.gather({
+          input: "speech",
+          action: "/voice",
+          language: "es-MX",
+        });
+        res.type("text/xml");
+        res.send(response.toString());
+        io.emit("process-speech-trigger")
+        startProcess = true
+        welcome = false
+      }
+      if(startProcess){
+        response.play(`https://call-t0fi.onrender.com/public/${latestAudioUrl}`);
+        response.gather({
+          input: "speech",
+          action: "/voice",
+          language: "es-MX",
+        });
+        res.type("text/xml");
+        res.send(response.toString());
+        if (despedidas.some((despedida) => userSpeech.includes(despedida))) {
+          return;
+        }
       }
     }catch(error){
       console.error("Error al esperar el audio:", error);
       response.say({ voice: "alice", language: "es-MX" }, "Hubo un error procesando tu solicitud.");
     }
-  }
 });
 
 // Iniciar servidor
