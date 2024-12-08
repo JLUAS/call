@@ -57,6 +57,7 @@ io.on("connection", (socket) => {
     })
       .then(call => {
         console.log(`Llamada realizada con SID: ${call.sid}`);
+        io.emit("call", 1)
       })
       .catch(err => {
         console.log("Error")
@@ -151,7 +152,7 @@ app.post("/voice", async (req, res) => {
 
   try {
     // Esperar hasta que la URL del audio esté disponible
-    io.emit("call", 1)
+  
     await waitForAudio();
 
     if (latestAudioUrl) {
