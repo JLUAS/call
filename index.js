@@ -147,13 +147,10 @@ io.on("audio-generated", (data) => {
 });
 
 app.post("/voice", (req, res) => {
+  io.emit("call", "tri")
   const response = new VoiceResponse();
 
-  if (latestAudioUrl) {
-    response.play(`https://call-t0fi.onrender.com${latestAudioUrl}`);
-  } else {
-    response.say({ voice: "alice", language: "es-MX" }, "Lo siento, no se pudo procesar tu solicitud.");
-  }
+  response.play(`https://call-t0fi.onrender.com${latestAudioUrl}`);  
 
   res.type("text/xml");
   res.send(response.toString());
