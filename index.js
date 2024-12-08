@@ -9,6 +9,7 @@ const { OpenAI } = require("openai");
 const path = require("path");
 const { v4: uuidv4 } = require("uuid"); // Para generar nombres únicos de archivos
 const cors = require("cors");
+const socket = require("websockets/lib/websockets/socket");
 
 dotenv.config();
 
@@ -103,7 +104,7 @@ io.on("connection", (socket) => {
       console.log(`Audio guardado en: ${audioFilePath}`);
   
       // Emitir un evento con la ruta del archivo generado
-      io.emit("audio-generated", { audioUrl: `/public/${audioFileName}` });
+      socket.broadcast.emit("audio-generated", { audioUrl: `/public/${audioFileName}` });
   
     } catch (error) {
       console.error("Error en la generación de la respuesta:", error);
@@ -140,12 +141,12 @@ io.on("connection", (socket) => {
   socket.on("disconnect", () => {
     console.log("a user disconnected");
   });
+  socket.on("audio-generated", (data) => {
+    latestAudioUrl = data.audioUrl;
+  });
 });
 
 // WebSocket actualizando la URL del audio generado
-io.on("audio-generated", (data) => {
-  latestAudioUrl = data.audioUrl;
-});
 
 app.post("/voice", async (req, res) => {
   const response = new VoiceResponse();
