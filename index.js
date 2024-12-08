@@ -94,13 +94,13 @@ io.on("connection", (socket) => {
           language: "es-MX",
         });
     
-        res.type("text/xml");
-        res.send(response.toString());
+        type("text/xml");
+        send(response.toString());
       } catch (error) {
         console.error("Error al generar la respuesta con OpenAI:", error);
         response.say({ voice: "alice", language: "es-MX" }, "Error. Intenta más tarde.");
-        res.type("text/xml");
-        res.send(response.toString());
+        type("text/xml");
+        send(response.toString());
       }
     });
 
