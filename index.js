@@ -61,7 +61,6 @@ io.on("connection", (socket) => {
       .catch(err => {
         console.log("Error")
       })
-    socket.broadcast.emit("call")
   })
 
   socket.on("call", async () => {
@@ -152,9 +151,6 @@ app.post("/voice", async (req, res) => {
 
   try {
     // Esperar hasta que la URL del audio esté disponible
-  
-    await waitForAudio();
-
     if (latestAudioUrl) {
       response.play(`https://call-t0fi.onrender.com${latestAudioUrl}`);
     } else {
