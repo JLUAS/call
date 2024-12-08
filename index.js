@@ -57,7 +57,7 @@ io.on("connection", (socket) => {
     })
       .then(call => {
         console.log(`Llamada realizada con SID: ${call.sid}`);
-        io.emit("call", 1)
+        socket.emit("call", 1)
       })
       .catch(err => {
         console.log("Error")
