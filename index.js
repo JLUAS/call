@@ -98,13 +98,13 @@ io.on("connection", (socket) => {
       });
   
       const audioBuffer = await audioResponse.buffer();
-      const audioFileName = `audio.mp3`;
+      const audioFileName = `${uuidv4()}.mp3`;
       const audioFilePath = path.join(publicDir, audioFileName);
       fs.writeFileSync(audioFilePath, audioBuffer);
       console.log(`Audio guardado en: ${audioFilePath}`);
       console.log("Audio:", audioFileName)
       // Emitir un evento con la ruta del archivo generado
-      socket.broadcast.emit("audio-generated", audioFileName );
+      latestAudioUrl = audioFileName
   
     } catch (error) {
       console.error("Error en la generación de la respuesta:", error);
@@ -141,12 +141,6 @@ io.on("connection", (socket) => {
   socket.on("disconnect", () => {
     console.log("a user disconnected");
   });
-  socket.on("audio-generated", (data) => {
-    console.log("Audio url changed")
-    console.log(data)
-    console.log(`https://call-t0fi.onrender.com${data}`)
-    latestAudioUrl = data;
-  });
 });
 
 // WebSocket actualizando la URL del audio generado
@@ -156,7 +150,7 @@ app.post("/voice", async (req, res) => {
   
   try {
     // Esperar hasta que la URL del audio esté disponible
-    response.play(`https://call-t0fi.onrender.com/public/audio.mp3`);
+    response.play(`https://call-t0fi.onrender.com/public${latestAudioUrl}`);
     response.gather({
       input: "speech",
       action: "/voice",
