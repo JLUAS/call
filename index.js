@@ -150,12 +150,18 @@ io.on("connection", (socket) => {
 
 app.post("/voice", async (req, res) => {
   const response = new VoiceResponse();
-
+  
   try {
     // Esperar hasta que la URL del audio esté disponible
-      response.play(`https://call-t0fi.onrender.com${latestAudioUrl}`);
-      res.type("text/xml");
-      res.send(response.toString());
+    response.play(`https://call-t0fi.onrender.com${latestAudioUrl}`);
+    response.gather({
+      input: "speech",
+      action: "/voice",
+      language: "es-MX",
+    });
+    res.type("text/xml");
+    res.send(response.toString());
+    
   } catch (error) {
     console.error("Error al esperar el audio:", error);
     response.say({ voice: "alice", language: "es-MX" }, "Hubo un error procesando tu solicitud.");
