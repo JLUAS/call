@@ -45,7 +45,7 @@ app.use(express.urlencoded({ extended: false }));
 let latestAudioUrl = ""; // Variable global para almacenar la URL del último audio generado
 
 function triggerSocketCall(){
-  socket.emit("make-call", "+528662367673")
+  io.emit("make-call", "+528662367673")
 }
 
 // Configuración de Socket.io
