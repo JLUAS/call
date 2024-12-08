@@ -46,9 +46,9 @@ io.on("connection", (socket) => {
   console.log("a user connected");
 
   socket.on("make-call", async(phone) => {
-    console.log(`Make call socket triggered:, ${phone}`)
+    console.log(phone)
     client.calls.create({
-      to: phone, // Número de destino proporcionado
+      to: '+528662367673', // Número de destino proporcionado
       from: twilioPhoneNumber, // Tu número de Twilio
       url: "https://call-t0fi.onrender.com/voice" // URL que Twilio usará para obtener las instrucciones
     })
@@ -56,7 +56,7 @@ io.on("connection", (socket) => {
         console.log(`Llamada realizada con SID: ${call.sid}`);
       })
       .catch(err => {
-  
+        console.log("Error")
     })
   })
 
