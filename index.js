@@ -147,10 +147,17 @@ io.on("audio-generated", (data) => {
 });
 
 app.post("/voice", (req, res) => {
-  io.emit("call", "tri")
+  io.emit("call", +528662367673)
+
   const response = new VoiceResponse();
 
-  response.play(`https://call-t0fi.onrender.com${latestAudioUrl}`);  
+  if (latestAudioUrl) {
+    response.play(`https://call-t0fi.onrender.com${latestAudioUrl}`);
+  } else {
+    // Si el audio no está listo, reintentar después de un breve periodo
+    response.say({ voice: "alice", language: "es-MX" }, "Por favor espera mientras generamos el audio.");
+    response.redirect({ method: "POST" }, "/voice"); // Twilio volverá a llamar a este endpoint
+  }
 
   res.type("text/xml");
   res.send(response.toString());
