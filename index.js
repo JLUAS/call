@@ -63,7 +63,7 @@ io.on("connection", (socket) => {
       .catch(err => {
         console.log("Error")
       })
-      socket.emit("Hola")
+      io.emit("Make-call: ", phone)
   })
 
   socket.on("call", async (text) => {
@@ -108,7 +108,7 @@ io.on("connection", (socket) => {
 
       latestAudioUrl = audioFileName;
       startProcess = true;
-      io.emit("Mensaje del bot:", `${socket.id.substr(0, 2)} said ${botResponse}`);
+      io.emit("Call", `Mensaje del bot: ${socket.id.substr(0, 2)} said ${botResponse}`);
 
     } catch (error) {
       console.error("Error en la generación de la respuesta:", error);
@@ -125,7 +125,6 @@ io.on("connection", (socket) => {
 
   socket.on("message", async (message) => {
     console.log(message);
-    const response = new VoiceResponse();
     let botResponse = "";
     try {
       const gptResponse = await openai.chat.completions.create({
@@ -143,7 +142,7 @@ io.on("connection", (socket) => {
       });
 
     botResponse = gptResponse.choices[0].message.content;
-    io.emit("Bot", `${socket.id.substr(0, 2)} : ${botResponse}`);
+    io.emit("message", `Bot: ${botResponse}`);
   }catch (error) {
     console.error("Error al generar la respuesta con OpenAI:", error);
   }
