@@ -54,7 +54,6 @@ io.on("connection", (socket) => {
     })
       .then(call => {
         console.log(`Llamada realizada con SID: ${call.sid}`);
-        res.status(200).send({ message: 'Llamada realizada con éxito', callSid: call.sid });
       })
       .catch(err => {
   
@@ -151,6 +150,7 @@ app.post("/voice", async (req, res) => {
 app.post('/make-call', (req, res) => {
   io.emit("make-call", +528662367673)
   console.log("hola?")
+  res.send("hola")
 })
 
 // Iniciar servidor
