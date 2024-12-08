@@ -159,9 +159,6 @@ app.post("/voice", async (req, res) => {
     console.error("Error al esperar el audio:", error);
     response.say({ voice: "alice", language: "es-MX" }, "Hubo un error procesando tu solicitud.");
   }
-
-  res.type("text/xml");
-  res.send(response.toString());
 });
 
 // Función auxiliar para esperar hasta que el audio esté disponible
