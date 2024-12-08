@@ -117,7 +117,6 @@ io.on("connection", (socket) => {
         console.log("Audio:", audioFileName);
   
         welcomeUrl = audioFileName;
-        io.emit("process-speech-trigger")
       } catch (error) {
         console.error("Error en la generación de la respuesta:", error);
         io.emit("error", { message: "Error al procesar la solicitud." });
@@ -217,7 +216,9 @@ app.post("/voice", async (req, res) => {
       });
       res.type("text/xml");
       res.send(response.toString());
+      io.emit("process-speech-trigger")
       startProcess = true
+
     }catch(error){
       console.error("Error al esperar el audio:", error);
       response.say({ voice: "alice", language: "es-MX" }, "Hubo un error procesando tu solicitud.");
