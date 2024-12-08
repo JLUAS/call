@@ -159,10 +159,6 @@ io.on("connection", (socket) => {
         fs.writeFileSync(audioFilePath, audioBuffer);
         console.log(`Audio guardado en: ${audioFilePath}`);
         latestAudioUrl = audioFileName
-
-        if (despedidas.some((despedida) => userSpeech.includes(despedida))) {
-          return;
-        }
         io.emit("process-speech-trigger")
       } catch (error) {
         console.error("Error al generar respuesta:", error);
