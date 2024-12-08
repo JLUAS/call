@@ -65,7 +65,7 @@ io.on("connection", (socket) => {
       })
   })
 
-  socket.on("call", async () => {
+  socket.on("call", async (text) => {
     if(startProcess == false){
       console.log("Llamada recibida a través del WebSocket");
   
@@ -116,7 +116,7 @@ io.on("connection", (socket) => {
     }
   });
   
-  socket.on("process-speech", async () => {
+  socket.on("process-speech", async (text) => {
     if(startProcess == true){
       io.emit("Usuario dijo", userSpeech)
     }
