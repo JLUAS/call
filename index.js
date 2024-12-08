@@ -10,6 +10,7 @@ const path = require("path");
 const { v4: uuidv4 } = require("uuid"); // Para generar nombres únicos de archivos
 const cors = require("cors");
 const socket = require("websockets/lib/websockets/socket");
+const { start } = require("repl");
 
 dotenv.config();
 
@@ -45,6 +46,11 @@ let welcomeUrl = "";
 let latestAudioUrl = ""; // Variable global para almacenar la URL del último audio generado
 let startProcess = false;
 let userSpeech = ""
+let despedidas = [
+  "adiós", "hasta luego", "nos vemos", "bye", "me voy", 
+  "gracias, adiós", "eso es todo, hasta luego", "ya terminé, gracias", 
+  "me tengo que ir"
+];
 let welcome = true;
 // Configuración de Socket.io
 io.on("connection", (socket) => {
@@ -110,7 +116,6 @@ io.on("connection", (socket) => {
   
         welcomeUrl = audioFileName;
         io.emit("process-speech-trigger")
-        startProcess = true;
       } catch (error) {
         console.error("Error en la generación de la respuesta:", error);
         io.emit("error", { message: "Error al procesar la solicitud." });
@@ -121,17 +126,12 @@ io.on("connection", (socket) => {
   socket.on("process-speech", async (text) => {
     if(startProcess == true){
       io.emit("message", `Usuario: ${userSpeech}`)
-      const despedidas = [
-        "adiós", "hasta luego", "nos vemos", "bye", "me voy", 
-        "gracias, adiós", "eso es todo, hasta luego", "ya terminé, gracias", 
-        "me tengo que ir"
-      ];
       let botResponse = "";
       try {
         const gptResponse = await openai.chat.completions.create({
           model: model,
           messages: [
-            { role: "system", content: "Eres un asistente del banco Choche especializado en terminales de pago." },
+            { role: "system", content: "Eres un asistente del banco Santander especializado en terminales de pago." },
             { role: "user", content: userSpeech },
           ],
         });
@@ -204,7 +204,42 @@ io.on("connection", (socket) => {
 
 app.post("/voice", async (req, res) => {
   const response = new VoiceResponse();
-  if(startProcess) userSpeech = req.body.SpeechResult;
+  if(startProcess) console.log(req.body.SpeechResult);
+  if(welcome){
+    try{
+      response.play(`https://call-t0fi.onrender.com/public/${welcomeUrl}`);
+      response.gather({
+        input: "speech",
+        action: "/voice",
+        language: "es-MX",
+      });
+      res.type("text/xml");
+      res.send(response.toString());
+      startProcess = true
+    }catch(error){
+      console.error("Error al esperar el audio:", error);
+      response.say({ voice: "alice", language: "es-MX" }, "Hubo un error procesando tu solicitud.");
+    }
+  }
+
+  if(startProcess){
+    try{
+      response.play(`https://call-t0fi.onrender.com/public/${latestAudioUrl}`);
+      response.gather({
+        input: "speech",
+        action: "/voice",
+        language: "es-MX",
+      });
+      res.type("text/xml");
+      res.send(response.toString());
+      if (despedidas.some((despedida) => userSpeech.includes(despedida))) {
+        return;
+      }
+    }catch(error){
+      console.error("Error al esperar el audio:", error);
+      response.say({ voice: "alice", language: "es-MX" }, "Hubo un error procesando tu solicitud.");
+    }
+  }
   try {
     // Esperar hasta que la URL del audio esté disponible
     if(welcome){
