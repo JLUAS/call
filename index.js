@@ -61,6 +61,7 @@ io.on("connection", (socket) => {
       .catch(err => {
         console.log("Error")
       })
+      socket.broadcast.emit("call")
   })
 
   socket.on("call", async () => {
