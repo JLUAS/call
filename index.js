@@ -102,7 +102,7 @@ io.on("connection", (socket) => {
       const audioFilePath = path.join(publicDir, audioFileName);
       fs.writeFileSync(audioFilePath, audioBuffer);
       console.log(`Audio guardado en: ${audioFilePath}`);
-  
+      console.log("Audio:", audioFileName)
       // Emitir un evento con la ruta del archivo generado
       socket.broadcast.emit("audio-generated", audioFileName );
   
