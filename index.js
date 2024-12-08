@@ -243,26 +243,6 @@ app.post("/voice", async (req, res) => {
       response.say({ voice: "alice", language: "es-MX" }, "Hubo un error procesando tu solicitud.");
     }
   }
-  try {
-    // Esperar hasta que la URL del audio esté disponible
-    if(welcome){
-      response.play(`https://call-t0fi.onrender.com/public/${welcomeUrl}`);
-      welcome = false
-    }else{
-      response.play(`https://call-t0fi.onrender.com/public/${latestAudioUrl}`);
-    }
-    response.gather({
-      input: "speech",
-      action: "/voice",
-      language: "es-MX",
-    });
-    res.type("text/xml");
-    res.send(response.toString());
-    
-  } catch (error) {
-    console.error("Error al esperar el audio:", error);
-    response.say({ voice: "alice", language: "es-MX" }, "Hubo un error procesando tu solicitud.");
-  }
 });
 
 // Iniciar servidor
