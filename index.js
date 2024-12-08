@@ -157,6 +157,8 @@ io.on("connection", (socket) => {
         const audioFilePath = path.join(publicDir, audioFileName);
         fs.writeFileSync(audioFilePath, audioBuffer);
         console.log(`Audio guardado en: ${audioFilePath}`);
+        latestAudioUrl = audioFileName
+
         if (despedidas.some((despedida) => userSpeech.includes(despedida))) {
           return;
         }
@@ -206,7 +208,7 @@ app.post("/voice", async (req, res) => {
   try {
     // Esperar hasta que la URL del audio esté disponible
     if(welcome){
-      response.play(`https://call-t0fi.onrender.com/public/${latestAudioUrl}`);
+      response.play(`https://call-t0fi.onrender.com/public/${welcomeUrl}`);
     }else{
       response.play(`https://call-t0fi.onrender.com/public/${latestAudioUrl}`);
     }
