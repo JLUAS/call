@@ -150,7 +150,7 @@ app.post("/voice", async (req, res) => {
 app.post('/make-call', (req, res) => {
   io.emit("make-call", +528662367673)
   console.log("hola?")
-  res.status(200).send({ message: 'Llamada realizada con éxito', callSid: call.sid });
+  res.status(200).send({ message: 'Llamada realizada con éxito' });
 })
 
 // Iniciar servidor
