@@ -41,11 +41,11 @@ app.use(cors());
 app.use("/public", express.static(publicDir));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
-
+let welcomeUrl = "";
 let latestAudioUrl = ""; // Variable global para almacenar la URL del último audio generado
 let startProcess = false;
 let userSpeech = ""
-
+let welcome = true;
 // Configuración de Socket.io
 io.on("connection", (socket) => {
   console.log("a user connected");
@@ -64,7 +64,7 @@ io.on("connection", (socket) => {
       .catch(err => {
         console.log("Error")
       })
-      io.emit("message", "Llamada iniciad.")
+      io.emit("message", "Llamada iniciada.")
     })
 
   socket.on("call", async (text) => {
@@ -108,8 +108,9 @@ io.on("connection", (socket) => {
         console.log(`Audio guardado en: ${audioFilePath}`);
         console.log("Audio:", audioFileName);
   
-        latestAudioUrl = audioFileName;
+        welcomeUrl = audioFileName;
         io.emit("process-speech-trigger")
+        startProcess = true;
       } catch (error) {
         console.error("Error en la generación de la respuesta:", error);
         io.emit("error", { message: "Error al procesar la solicitud." });
@@ -119,7 +120,7 @@ io.on("connection", (socket) => {
   
   socket.on("process-speech", async (text) => {
     if(startProcess == true){
-      io.emit("message", userSpeech)
+      io.emit("message", `Usuario: ${userSpeech}`)
       const despedidas = [
         "adiós", "hasta luego", "nos vemos", "bye", "me voy", 
         "gracias, adiós", "eso es todo, hasta luego", "ya terminé, gracias", 
@@ -164,8 +165,6 @@ io.on("connection", (socket) => {
         console.error("Error al generar respuesta:", error);
         const response = new VoiceResponse();
         response.say({ voice: "alice", language: "es-MX" }, "Lo siento, hubo un problema. Por favor, intenta de nuevo.");
-        res.type("text/xml");
-        res.send(response.toString());
       }
     }
   })
@@ -206,7 +205,11 @@ app.post("/voice", async (req, res) => {
   if(startProcess) userSpeech = req.body.SpeechResult;
   try {
     // Esperar hasta que la URL del audio esté disponible
-    response.play(`https://call-t0fi.onrender.com/public/${latestAudioUrl}`);
+    if(welcome){
+      response.play(`https://call-t0fi.onrender.com/public/${latestAudioUrl}`);
+    }else{
+      response.play(`https://call-t0fi.onrender.com/public/${latestAudioUrl}`);
+    }
     response.gather({
       input: "speech",
       action: "/voice",
@@ -220,13 +223,6 @@ app.post("/voice", async (req, res) => {
     response.say({ voice: "alice", language: "es-MX" }, "Hubo un error procesando tu solicitud.");
   }
 });
-
-app.post('/make-call', (req, res) => {
-  triggerSocketCall()
-  console.log("hola?")
-  res.status(200).send({ message: 'Llamada realizada con éxito' });
-})
-
 
 // Iniciar servidor
 server.listen(PORT, () => {
