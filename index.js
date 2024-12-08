@@ -153,6 +153,8 @@ app.post("/voice", async (req, res) => {
   try {
     // Esperar hasta que la URL del audio esté disponible
       response.play(`https://call-t0fi.onrender.com${latestAudioUrl}`);
+      res.type("text/xml");
+      res.send(response.toString());
   } catch (error) {
     console.error("Error al esperar el audio:", error);
     response.say({ voice: "alice", language: "es-MX" }, "Hubo un error procesando tu solicitud.");
