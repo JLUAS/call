@@ -46,8 +46,8 @@ io.on("connection", (socket) => {
   console.log("a user connected");
   
     // Escuchar eventos de cliente
-    socket.on("start-call", async (data) => {
-      console.log("Inicio de llamada solicitado:", data);
+    socket.on("start-call", async () => {
+      console.log("Inicio de llamada solicitado");
       const response = new VoiceResponse();
       let botResponse = "";
       try {
@@ -56,11 +56,11 @@ io.on("connection", (socket) => {
           messages: [
             {
               role: "system",
-              content: "Eres un asistente del banco Choche.",
+              content: "Eres un asistente del banco Santander.",
             },
             {
-              role: "user",
-              content: "Hola, buen día. Le llamo del banco Choche.",
+              role: "assistant",
+              content: "Hola, buen día. Le llamo del banco Santander.",
             },
           ],
         });
@@ -90,7 +90,7 @@ io.on("connection", (socket) => {
         response.play(`https://call-t0fi.onrender.com/public/${audioFileName}`);
         response.gather({
           input: "speech",
-          action: "/process-speech",
+          action: io.emit("start-call", 8),
           language: "es-MX",
         });
     
@@ -128,7 +128,7 @@ io.on("connection", (socket) => {
         messages: [
           {
             role: "system",
-            content: "Eres un asistente del banco Choche.",
+            content: "Eres un asistente del banco Santander.",
           },
           {
             role: "user",
@@ -157,8 +157,8 @@ app.post('/make-call', (req, res) => {
     to: '+528662367673', // Número de destino proporcionado
     from: twilioPhoneNumber, // Tu número de Twilio
     url: `wss://${req.headers.host}/start-call` // URL que Twilio usará para obtener las instrucciones
-    
   })
+  console.log(`wss://${req.headers.host}/start-call`)
     .then(call => {
       console.log(`Llamada realizada con SID: ${call.sid}`);
       res.status(200).send({ message: 'Llamada realizada con éxito', callSid: call.sid });
@@ -182,7 +182,7 @@ app.post('/make-call', (req, res) => {
 //     const gptResponse = await openai.chat.completions.create({
 //       model: model,
 //       messages: [
-//         { role: "system", content: "Eres un asistente del banco Choche especializado en terminales de pago." },
+//         { role: "system", content: "Eres un asistente del banco Santander especializado en terminales de pago." },
 //         { role: "user", content: userSpeech },
 //       ],
 //     });
@@ -261,11 +261,11 @@ app.post('/make-call', (req, res) => {
 //       messages: [
 //         {
 //           role: "system",
-//           content: "Eres un asistente del banco Choche.",
+//           content: "Eres un asistente del banco Santander.",
 //         },
 //         {
 //           role: "user",
-//           content: "Hola, buen día. Le llamo del banco Choche.",
+//           content: "Hola, buen día. Le llamo del banco Santander.",
 //         },
 //       ],
 //     });
