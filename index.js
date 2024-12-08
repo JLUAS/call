@@ -9,6 +9,7 @@ const { OpenAI } = require("openai");
 const path = require("path");
 const { v4: uuidv4 } = require("uuid"); // Para generar nombres únicos de archivos
 const cors = require("cors");
+const socket = require("websockets/lib/websockets/socket");
 
 dotenv.config();
 
@@ -17,7 +18,6 @@ const server = http.createServer(app);
 const io = new Server(server, {
   cors: { origin: "*" },
 });
-const socket = io('wss://call-t0fi.onrender.com/');
 
 const PORT = process.env.PORT || 3000;
 
@@ -43,10 +43,8 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
 let latestAudioUrl = ""; // Variable global para almacenar la URL del último audio generado
-
-function triggerSocketCall(){
-  socket.emit("make-call", "+528662367673")
-}
+let startProcess = false;
+let userSpeech = ""
 
 // Configuración de Socket.io
 io.on("connection", (socket) => {
@@ -65,11 +63,11 @@ io.on("connection", (socket) => {
       .catch(err => {
         console.log("Error")
       })
-      socket.broadcast.emit("call")
   })
 
   socket.on("call", async () => {
-    console.log("Llamada recibida a través del WebSocket");
+    if(startProcess == false){
+      console.log("Llamada recibida a través del WebSocket");
   
     const response = new VoiceResponse();
     let botResponse = "";
@@ -105,16 +103,24 @@ io.on("connection", (socket) => {
       const audioFilePath = path.join(publicDir, audioFileName);
       fs.writeFileSync(audioFilePath, audioBuffer);
       console.log(`Audio guardado en: ${audioFilePath}`);
-      console.log("Audio:", audioFileName)
-      // Emitir un evento con la ruta del archivo generado
-      latestAudioUrl = audioFileName
-  
+      console.log("Audio:", audioFileName);
+
+      latestAudioUrl = audioFileName;
+      startProcess = true;
+      io.emit("Mensaje del bot:", `${socket.id.substr(0, 2)} said ${botResponse}`);
+
     } catch (error) {
       console.error("Error en la generación de la respuesta:", error);
       io.emit("error", { message: "Error al procesar la solicitud." });
     }
+    }
   });
   
+  socket.on("process-speech", async () => {
+    if(startProcess == true){
+      io.emit("Usuario dijo", userSpeech)
+    }
+  })
 
   socket.on("message", async (message) => {
     console.log(message);
@@ -150,7 +156,8 @@ io.on("connection", (socket) => {
 
 app.post("/voice", async (req, res) => {
   const response = new VoiceResponse();
-  
+  if(startProcess) userSpeech = req.body.SpeechResult;
+
   try {
     // Esperar hasta que la URL del audio esté disponible
     response.play(`https://call-t0fi.onrender.com/public/${latestAudioUrl}`);
@@ -167,25 +174,6 @@ app.post("/voice", async (req, res) => {
     response.say({ voice: "alice", language: "es-MX" }, "Hubo un error procesando tu solicitud.");
   }
 });
-
-// Función auxiliar para esperar hasta que el audio esté disponible
-function waitForAudio(timeout = 10000, interval = 500) {
-  return new Promise((resolve, reject) => {
-    const start = Date.now();
-
-    const checkAudio = () => {
-      if (latestAudioUrl) {
-        return resolve();
-      }
-      if (Date.now() - start >= timeout) {
-        return reject(new Error("Timeout esperando el archivo de audio."));
-      }
-      setTimeout(checkAudio, interval);
-    };
-
-    checkAudio();
-  });
-}
 
 app.post('/make-call', (req, res) => {
   triggerSocketCall()
