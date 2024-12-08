@@ -41,6 +41,9 @@ app.use("/public", express.static(publicDir));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
+let latestAudioUrl = ""; // Variable global para almacenar la URL del último audio generado
+
+
 // Configuración de Socket.io
 io.on("connection", (socket) => {
   console.log("a user connected");
@@ -60,21 +63,25 @@ io.on("connection", (socket) => {
     })
   })
 
-  socket.on(("call"), async (tri) => {
-    console.log("Llamada en ws call")
+  socket.on("call", async (tri) => {
+    console.log("Llamada recibida a través del WebSocket");
+  
     const response = new VoiceResponse();
     let botResponse = "";
+  
     try {
+      // 1. Generar la respuesta con OpenAI
       const gptResponse = await openai.chat.completions.create({
         model: model,
         messages: [
           { role: "system", content: "Eres un asistente del banco Choche especializado en terminales de pago." },
         ],
       });
-
+  
       botResponse = gptResponse.choices[0].message.content;
       console.log(`Respuesta generada por OpenAI: ${botResponse}`);
-
+  
+      // 2. Generar el archivo de audio
       const audioResponse = await fetch("https://api.openai.com/v1/audio/speech", {
         method: "POST",
         headers: {
@@ -87,24 +94,22 @@ io.on("connection", (socket) => {
           input: botResponse,
         }),
       });
-
+  
       const audioBuffer = await audioResponse.buffer();
       const audioFileName = `${uuidv4()}.mp3`;
       const audioFilePath = path.join(publicDir, audioFileName);
       fs.writeFileSync(audioFilePath, audioBuffer);
       console.log(`Audio guardado en: ${audioFilePath}`);
-
-      response.play(`https://call-t0fi.onrender.com/public/${audioFileName}`);
-      response.gather({
-        input: "speech",
-        action: "/voice",
-        language: "es-MX",
-      });
+  
+      // Emitir un evento con la ruta del archivo generado
+      io.emit("audio-generated", { audioUrl: `/public/${audioFileName}` });
+  
     } catch (error) {
-      console.error("Error al generar la respuesta con OpenAI:", error);
-      response.say({ voice: "alice", language: "es-MX" }, "Error. Intenta más tarde.");
+      console.error("Error en la generación de la respuesta:", error);
+      io.emit("error", { message: "Error al procesar la solicitud." });
     }
-  })
+  });
+  
 
   socket.on("message", async (message) => {
     console.log(message);
@@ -135,9 +140,23 @@ io.on("connection", (socket) => {
     console.log("a user disconnected");
   });
 });
-app.post("/voice", async (req, res) => {
-  io.emit("call", 2)
-  res.status(200).send({ message: 'Llamada realizada con éxito' });
+
+// WebSocket actualizando la URL del audio generado
+io.on("audio-generated", (data) => {
+  latestAudioUrl = data.audioUrl;
+});
+
+app.post("/voice", (req, res) => {
+  const response = new VoiceResponse();
+
+  if (latestAudioUrl) {
+    response.play(`https://call-t0fi.onrender.com${latestAudioUrl}`);
+  } else {
+    response.say({ voice: "alice", language: "es-MX" }, "Lo siento, no se pudo procesar tu solicitud.");
+  }
+
+  res.type("text/xml");
+  res.send(response.toString());
 });
 
 app.post('/make-call', (req, res) => {
