@@ -50,8 +50,9 @@ let userSpeech = ""
 io.on("connection", (socket) => {
   console.log("a user connected");
 
-  socket.on("make-call", async(phone) => {
+  socket.on("make-call", async (phone) => {
     console.log(phone)
+    io.emit("message", `Phone: ${phone}`);
     client.calls.create({
       to: '+528662367673', // Número de destino proporcionado
       from: twilioPhoneNumber, // Tu número de Twilio
@@ -63,11 +64,11 @@ io.on("connection", (socket) => {
       .catch(err => {
         console.log("Error")
       })
-      io.emit("Make-call: ", phone)
-  })
+    })
 
   socket.on("call", async (text) => {
     if(startProcess == false){
+      console.log(text)
       console.log("Llamada recibida a través del WebSocket");
   
     const response = new VoiceResponse();
@@ -83,8 +84,9 @@ io.on("connection", (socket) => {
       });
   
       botResponse = gptResponse.choices[0].message.content;
+      io.emit("message", `Bot: ${botResponse}`);
       console.log(`Respuesta generada por OpenAI: ${botResponse}`);
-  
+
       // 2. Generar el archivo de audio
       const audioResponse = await fetch("https://api.openai.com/v1/audio/speech", {
         method: "POST",
@@ -108,8 +110,6 @@ io.on("connection", (socket) => {
 
       latestAudioUrl = audioFileName;
       startProcess = true;
-      io.emit("Call", `Mensaje del bot: ${socket.id.substr(0, 2)} said ${botResponse}`);
-
     } catch (error) {
       console.error("Error en la generación de la respuesta:", error);
       io.emit("error", { message: "Error al procesar la solicitud." });
