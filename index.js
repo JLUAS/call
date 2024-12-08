@@ -44,79 +44,22 @@ app.use(express.urlencoded({ extended: false }));
 // Configuración de Socket.io
 io.on("connection", (socket) => {
   console.log("a user connected");
-  
-    // Escuchar eventos de cliente
-    socket.on("start-call", async () => {
-      console.log("Inicio de llamada solicitado");
-      const response = new VoiceResponse();
-      let botResponse = "";
-      try {
-        const gptResponse = await openai.chat.completions.create({
-          model: model,
-          messages: [
-            {
-              role: "system",
-              content: "Eres un asistente del banco Santander.",
-            },
-            {
-              role: "assistant",
-              content: "Hola, buen día. Le llamo del banco Santander.",
-            },
-          ],
-        });
-    
-        botResponse = gptResponse.choices[0].message.content;
-        console.log(`Respuesta generada por OpenAI: ${botResponse}`);
-    
-        const audioResponse = await fetch("https://api.openai.com/v1/audio/speech", {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${apiKey}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            model: "tts-1",
-            voice: "shimmer",
-            input: botResponse,
-          }),
-        });
-    
-        const audioBuffer = await audioResponse.buffer();
-        const audioFileName = `${uuidv4()}.mp3`;
-        const audioFilePath = path.join(publicDir, audioFileName);
-        fs.writeFileSync(audioFilePath, audioBuffer);
-        console.log(`Audio guardado en: ${audioFilePath}`);
-    
-        response.play(`https://call-t0fi.onrender.com/public/${audioFileName}`);
-        response.gather({
-          input: "speech",
-          action: io.emit("start-call", 8),
-          language: "es-MX",
-        });
-    
-      } catch (error) {
-        console.error("Error al generar la respuesta con OpenAI:", error);
-        response.say({ voice: "alice", language: "es-MX" }, "Error. Intenta más tarde.");
-        
-      }
-    });
 
-    socket.on("process-speech", async (data) => {
-      console.log("Inicio de process-speech:", data);
-    });
-
-    // Evento para finalizar la llamada
-    socket.on("end-call", async (data) => {
-      console.log("Finalizar llamada solicitado para SID:", data.callSid);
-      try {
-        await client.calls(data.callSid).update({ status: "completed" });
-        socket.emit("call-ended", { message: "Llamada finalizada correctamente" });
-      } catch (err) {
-        console.error("Error al finalizar la llamada:", err);
-        socket.emit("call-error", { error: "Error al finalizar la llamada" });
-      }
-    });
+  socket.on("make-call", async(phone) => {
+    console.log(`Make call socket triggered:, ${phone}`)
+    client.calls.create({
+      to: phone, // Número de destino proporcionado
+      from: twilioPhoneNumber, // Tu número de Twilio
+      url: "https://call-t0fi.onrender.com/voice" // URL que Twilio usará para obtener las instrucciones
+    })
+      .then(call => {
+        console.log(`Llamada realizada con SID: ${call.sid}`);
+        res.status(200).send({ message: 'Llamada realizada con éxito', callSid: call.sid });
+      })
+      .catch(err => {
   
+    })
+  })
 
   socket.on("message", async (message) => {
     console.log(message);
@@ -143,29 +86,70 @@ io.on("connection", (socket) => {
     console.error("Error al generar la respuesta con OpenAI:", error);
   }
   });
-
-
-
-
   socket.on("disconnect", () => {
     console.log("a user disconnected");
   });
 });
 
-app.post('/make-call', (req, res) => {
-  client.calls.create({
-    to: '+528662367673', // Número de destino proporcionado
-    from: twilioPhoneNumber, // Tu número de Twilio
-    url: `wss://${req.headers.host}/start-call` // URL que Twilio usará para obtener las instrucciones
-  })
-  console.log(`wss://${req.headers.host}/start-call`)
-    .then(call => {
-      console.log(`Llamada realizada con SID: ${call.sid}`);
-      res.status(200).send({ message: 'Llamada realizada con éxito', callSid: call.sid });
-    })
-    .catch(err => {
+app.post("/voice", async (req, res) => {
+  const response = new VoiceResponse();
+  let botResponse = "";
+  try {
+    const gptResponse = await openai.chat.completions.create({
+      model: model,
+      messages: [
+        {
+          role: "system",
+          content: "Eres un asistente del banco Choche.",
+        },
+        {
+          role: "user",
+          content: "Hola, buen día. Le llamo del banco Choche.",
+        },
+      ],
+    });
 
-  })
+    botResponse = gptResponse.choices[0].message.content;
+    console.log(`Respuesta generada por OpenAI: ${botResponse}`);
+
+    const audioResponse = await fetch("https://api.openai.com/v1/audio/speech", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "tts-1",
+        voice: "shimmer",
+        input: botResponse,
+      }),
+    });
+
+    const audioBuffer = await audioResponse.buffer();
+    const audioFileName = `${uuidv4()}.mp3`;
+    const audioFilePath = path.join(publicDir, audioFileName);
+    fs.writeFileSync(audioFilePath, audioBuffer);
+    console.log(`Audio guardado en: ${audioFilePath}`);
+
+    response.play(`https://call-t0fi.onrender.com/public/${audioFileName}`);
+    response.gather({
+      input: "speech",
+      action: "/process-speech",
+      language: "es-MX",
+    });
+
+    res.type("text/xml");
+    res.send(response.toString());
+  } catch (error) {
+    console.error("Error al generar la respuesta con OpenAI:", error);
+    response.say({ voice: "alice", language: "es-MX" }, "Error. Intenta más tarde.");
+    res.type("text/xml");
+    res.send(response.toString());
+  }
+});
+
+app.post('/make-call', (req, res) => {
+  io.emit("make-call", +528662367673)
 })
 
 // // Endpoint: Procesar respuesta de Twilio (entrada de voz)
