@@ -64,62 +64,109 @@ io.on("connection", (socket) => {
       .catch(err => {
         console.log("Error")
       })
+      io.emit("message", "Llamada iniciad.")
     })
 
   socket.on("call", async (text) => {
-    if(startProcess == false){
-      console.log(text)
+    if(!startProcess){
       console.log("Llamada recibida a través del WebSocket");
   
-    const response = new VoiceResponse();
-    let botResponse = "";
+      const response = new VoiceResponse();
+      let botResponse = "";
+    
+      try {
+        // 1. Generar la respuesta con OpenAI
+        const gptResponse = await openai.chat.completions.create({
+          model: model,
+          messages: [
+            { role: "assistant", content: "Buen dia, soy Jose Luis, representante del Banco Santander. Estamos ofreciendo terminales punto de venta. ¿Con quién tengo el gusto?" },
+          ],
+        });
+    
+        botResponse = gptResponse.choices[0].message.content;
+        io.emit("message", `Bot: ${botResponse}`);
+        console.log(`Respuesta generada por OpenAI: ${botResponse}`);
   
-    try {
-      // 1. Generar la respuesta con OpenAI
-      const gptResponse = await openai.chat.completions.create({
-        model: model,
-        messages: [
-          { role: "assistant", content: "Buen dia, soy Jose Luis, representante del Banco Santander. Estamos ofreciendo terminales punto de venta. ¿Con quién tengo el gusto?" },
-        ],
-      });
+        // 2. Generar el archivo de audio
+        const audioResponse = await fetch("https://api.openai.com/v1/audio/speech", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${apiKey}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            model: "tts-1",
+            voice: "shimmer",
+            input: botResponse,
+          }),
+        });
+    
+        const audioBuffer = await audioResponse.buffer();
+        const audioFileName = `${uuidv4()}.mp3`;
+        const audioFilePath = path.join(publicDir, audioFileName);
+        fs.writeFileSync(audioFilePath, audioBuffer);
+        console.log(`Audio guardado en: ${audioFilePath}`);
+        console.log("Audio:", audioFileName);
   
-      botResponse = gptResponse.choices[0].message.content;
-      io.emit("message", `Bot: ${botResponse}`);
-      console.log(`Respuesta generada por OpenAI: ${botResponse}`);
-
-      // 2. Generar el archivo de audio
-      const audioResponse = await fetch("https://api.openai.com/v1/audio/speech", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${apiKey}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model: "tts-1",
-          voice: "shimmer",
-          input: botResponse,
-        }),
-      });
-  
-      const audioBuffer = await audioResponse.buffer();
-      const audioFileName = `${uuidv4()}.mp3`;
-      const audioFilePath = path.join(publicDir, audioFileName);
-      fs.writeFileSync(audioFilePath, audioBuffer);
-      console.log(`Audio guardado en: ${audioFilePath}`);
-      console.log("Audio:", audioFileName);
-
-      latestAudioUrl = audioFileName;
-      startProcess = true;
-    } catch (error) {
-      console.error("Error en la generación de la respuesta:", error);
-      io.emit("error", { message: "Error al procesar la solicitud." });
-    }
+        latestAudioUrl = audioFileName;
+        io.emit("process-speech-trigger")
+      } catch (error) {
+        console.error("Error en la generación de la respuesta:", error);
+        io.emit("error", { message: "Error al procesar la solicitud." });
+      }
     }
   });
   
   socket.on("process-speech", async (text) => {
     if(startProcess == true){
-      io.emit("Usuario dijo", userSpeech)
+      io.emit("message", userSpeech)
+      const despedidas = [
+        "adiós", "hasta luego", "nos vemos", "bye", "me voy", 
+        "gracias, adiós", "eso es todo, hasta luego", "ya terminé, gracias", 
+        "me tengo que ir"
+      ];
+      let botResponse = "";
+      try {
+        const gptResponse = await openai.chat.completions.create({
+          model: model,
+          messages: [
+            { role: "system", content: "Eres un asistente del banco Choche especializado en terminales de pago." },
+            { role: "user", content: userSpeech },
+          ],
+        });
+    
+        botResponse = gptResponse.choices[0].message.content;
+        console.log(`Respuesta generada por ChatGPT: ${botResponse}`);
+    
+        const audioResponse = await fetch("https://api.openai.com/v1/audio/speech", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${apiKey}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            model: "tts-1",
+            voice: "shimmer",
+            input: botResponse,
+          }),
+        });
+    
+        const audioBuffer = await audioResponse.buffer();
+        const audioFileName = `${uuidv4()}.mp3`;
+        const audioFilePath = path.join(publicDir, audioFileName);
+        fs.writeFileSync(audioFilePath, audioBuffer);
+        console.log(`Audio guardado en: ${audioFilePath}`);
+        if (despedidas.some((despedida) => userSpeech.includes(despedida))) {
+          return;
+        }
+        io.emit("process-speech-trigger")
+      } catch (error) {
+        console.error("Error al generar respuesta:", error);
+        const response = new VoiceResponse();
+        response.say({ voice: "alice", language: "es-MX" }, "Lo siento, hubo un problema. Por favor, intenta de nuevo.");
+        res.type("text/xml");
+        res.send(response.toString());
+      }
     }
   })
 
@@ -157,7 +204,6 @@ io.on("connection", (socket) => {
 app.post("/voice", async (req, res) => {
   const response = new VoiceResponse();
   if(startProcess) userSpeech = req.body.SpeechResult;
-
   try {
     // Esperar hasta que la URL del audio esté disponible
     response.play(`https://call-t0fi.onrender.com/public/${latestAudioUrl}`);
