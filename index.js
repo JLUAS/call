@@ -142,6 +142,7 @@ io.on("connection", (socket) => {
     console.log("a user disconnected");
   });
   socket.on("audio-generated", (data) => {
+    console.log("Audio url changed")
     latestAudioUrl = data.audioUrl;
   });
 });
