@@ -146,22 +146,46 @@ io.on("audio-generated", (data) => {
   latestAudioUrl = data.audioUrl;
 });
 
-app.post("/voice", (req, res) => {
-  
+app.post("/voice", async (req, res) => {
   const response = new VoiceResponse();
-  
-  if (latestAudioUrl) {
-    response.play(`https://call-t0fi.onrender.com${latestAudioUrl}`);
-  } else {
-    // Si el audio no está listo, reintentar después de un breve periodo
-    response.say({ voice: "alice", language: "es-MX" }, "Por favor espera mientras generamos el audio.");
-    response.redirect({ method: "POST" }, "/voice"); // Twilio volverá a llamar a este endpoint
-    io.emit("call", 2)
+
+  try {
+    // Esperar hasta que la URL del audio esté disponible
+    io.emit("call", 1)
+    await waitForAudio();
+
+    if (latestAudioUrl) {
+      response.play(`https://call-t0fi.onrender.com${latestAudioUrl}`);
+    } else {
+      response.say({ voice: "alice", language: "es-MX" }, "El audio no está listo. Intenta más tarde.");
+    }
+  } catch (error) {
+    console.error("Error al esperar el audio:", error);
+    response.say({ voice: "alice", language: "es-MX" }, "Hubo un error procesando tu solicitud.");
   }
 
   res.type("text/xml");
   res.send(response.toString());
 });
+
+// Función auxiliar para esperar hasta que el audio esté disponible
+function waitForAudio(timeout = 10000, interval = 500) {
+  return new Promise((resolve, reject) => {
+    const start = Date.now();
+
+    const checkAudio = () => {
+      if (latestAudioUrl) {
+        return resolve();
+      }
+      if (Date.now() - start >= timeout) {
+        return reject(new Error("Timeout esperando el archivo de audio."));
+      }
+      setTimeout(checkAudio, interval);
+    };
+
+    checkAudio();
+  });
+}
 
 app.post('/make-call', (req, res) => {
   io.emit("make-call", +528662367673)
