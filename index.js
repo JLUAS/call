@@ -210,6 +210,8 @@ app.post("/voice", async (req, res) => {
           input: "speech",
           action: "/voice",
           language: "es-MX",
+          timeout: 2,
+
         });
         
         io.emit("process-speech-trigger")
