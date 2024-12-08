@@ -150,7 +150,7 @@ app.post("/voice", async (req, res) => {
   
   try {
     // Esperar hasta que la URL del audio esté disponible
-    response.play(`https://call-t0fi.onrender.com/public${latestAudioUrl}`);
+    response.play(`https://call-t0fi.onrender.com/public/${latestAudioUrl}`);
     response.gather({
       input: "speech",
       action: "/voice",
