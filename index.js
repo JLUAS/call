@@ -159,7 +159,6 @@ io.on("connection", (socket) => {
         fs.writeFileSync(audioFilePath, audioBuffer);
         console.log(`Audio guardado en: ${audioFilePath}`);
         latestAudioUrl = audioFileName
-        io.emit("process-speech-trigger")
       } catch (error) {
         console.error("Error al generar respuesta:", error);
         const response = new VoiceResponse();
@@ -205,11 +204,10 @@ app.post("/voice", async (req, res) => {
   if(startProcess && userSpeech != req.body.SpeechResult){
     enableResponse = true
     userSpeech =req.body.SpeechResult;
+    io.emit("process-speech-trigger")
   }else{
     enableResponse = false
   }
-    
-  
     try{
       if(welcome){
         response.play(`https://call-t0fi.onrender.com/public/${welcomeUrl}`);
@@ -217,11 +215,7 @@ app.post("/voice", async (req, res) => {
           input: "speech",
           action: "/voice",
           language: "es-MX",
-          timeout: 2,
-
         });
-        
-        io.emit("process-speech-trigger")
         startProcess = true
         welcome = false
       }
