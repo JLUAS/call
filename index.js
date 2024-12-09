@@ -31,6 +31,7 @@ const model = process.env.OPENAI_MODEL_ID;
 const VoiceResponse = twilio.twiml.VoiceResponse;
 const client = new twilio(accountSid, authToken);
 const openai = new OpenAI({ apiKey });
+const audioCache = new Map(); // Para almacenar los audios en memoria temporalmente
 
 const publicDir = path.join(__dirname, "public");
 if (!fs.existsSync(publicDir)) {
@@ -103,24 +104,21 @@ io.on("connection", (socket) => {
           }),
         ]);
     
-        botResponse = gptResponse.choices[0].message.content;
-        io.emit("message", `Bot bienvenida: ${botResponse}`);
-    
         const audioBuffer = await audioResponse.buffer();
         const audioFileName = `${uuidv4()}.mp3`;
         const audioFilePath = path.join(publicDir, audioFileName);
         fs.writeFileSync(audioFilePath, audioBuffer);
-        const response = new VoiceResponse();
-
-        response.play(`https://call-t0fi.onrender.com/public/${welcomeUrl}`);
-        response.gather({
-          input: "speech",
-          action: "/voice",
-          language: "es-MX",
-        });
         console.log(`Audio guardado en: ${audioFilePath}`);
         console.log("Audio:", audioFileName);
   
+        const audioId = uuidv4(); // Generar un ID único para el audio
+        console.log("Audio id: ", audioId);
+        audioCache.set(audioId, audioBuffer); // Almacenar en memoria
+
+        // Establecer tiempo de vida limitado para el audio (opcional)
+        setTimeout(() => audioCache.delete(audioId), 5 * 60 * 1000); // 5 minutos
+
+
         welcomeUrl = audioFileName;
       } catch (error) {
         console.error("Error en la generación de la respuesta:", error);
@@ -218,6 +216,12 @@ app.post("/voice", async (req, res) => {
     try{
       if(welcome){
         console.log("Welcome voice")
+        response.play(`https://call-t0fi.onrender.com/public/${welcomeUrl}`);
+        response.gather({
+          input: "speech",
+          action: "/voice",
+          language: "es-MX",
+        });
         startProcess = true
         welcome = false
       }
