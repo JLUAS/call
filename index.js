@@ -235,23 +235,32 @@ app.post("/voice", async (req, res) => {
         startProcess = true
         welcome = false
       }
-      if(startProcess && enableResponse){
-        console.log("Process-speech voice")
+      if (startProcess && enableResponse) {
+        console.log("Process-speech voice");
         response.play(`https://call-t0fi.onrender.com/dynamic-audio/${speechId}`);
         response.gather({
           input: "speech",
           action: "/voice",
           language: "es-MX",
         });
-      }
-      if(!enableResponse && !welcome){
-        console.log("Enable")
-        response.play(`https://call-t0fi.onrender.com/dynamic-audio/${welcomeId}`);
-        response.gather({
-          input: "speech",
-          action: "/voice",
-          language: "es-MX",
-        }); 
+      } else {
+        console.log("Esperando 5 segundos antes de reintentar...");
+        setTimeout(() => {
+          try {
+            response.play(`https://call-t0fi.onrender.com/dynamic-audio/${speechId}`);
+            response.gather({
+              input: "speech",
+              action: "/voice",
+              language: "es-MX",
+            });
+          } catch (error) {
+            console.error("Error al reintentar:", error);
+            response.say(
+              { voice: "alice", language: "es-MX" },
+              "Hubo un problema. Por favor, intenta nuevamente."
+            );
+          }
+        }, 5000); // Retraso de 5 segundos
       }
       if (despedidas.some((despedida) => userSpeech.includes(despedida))) {
         return;
