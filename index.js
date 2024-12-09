@@ -45,6 +45,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 let welcomeUrl = "";
 let welcomeId = ""
+let speechId = ""
 let latestAudioUrl = ""; // Variable global para almacenar la URL del último audio generado
 let startProcess = false;
 let userSpeech = ""
@@ -119,7 +120,6 @@ io.on("connection", (socket) => {
         // Establecer tiempo de vida limitado para el audio (opcional)
         setTimeout(() => audioCache.delete(audioId), 5 * 60 * 1000); // 5 minutos
 
-
         welcomeUrl = audioFileName;
       } catch (error) {
         console.error("Error en la generación de la respuesta:", error);
@@ -159,10 +159,12 @@ io.on("connection", (socket) => {
         ]);
         
         const audioBuffer = await audioResponse.buffer();
-        const audioFileName = `${uuidv4()}.mp3`;
-        const audioFilePath = path.join(publicDir, audioFileName);
-        fs.writeFileSync(audioFilePath, audioBuffer);
-        console.log(`Audio guardado en: ${audioFilePath}`);
+        const audioId = uuidv4(); // Generar un ID único para el audio
+
+        audioCache.set(audioId, audioBuffer); // Almacenar en memoria
+        speechId = audioId
+        // Establecer tiempo de vida limitado para el audio (opcional)
+        setTimeout(() => audioCache.delete(audioId), 5 * 60 * 1000); // 5 minutos
         latestAudioUrl = audioFileName
         io.emit("message", `Bot: ${botResponse}`);
       } catch (error) {
@@ -236,7 +238,7 @@ app.post("/voice", async (req, res) => {
       }
       if(startProcess && enableResponse){
         console.log("Process-speech voice")
-        response.play(`https://call-t0fi.onrender.com/public/${latestAudioUrl}`);
+        response.play(`https://call-t0fi.onrender.com/dynamic-audio/${speechId}`);
         response.gather({
           input: "speech",
           action: "/voice",
