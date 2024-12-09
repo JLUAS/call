@@ -260,7 +260,7 @@ app.post("/voice", async (req, res) => {
               "Hubo un problema. Por favor, intenta nuevamente."
             );
           }
-        }, 5000); // Retraso de 5 segundos
+        }, 10000); // Retraso de 5 segundos
       }
       if (despedidas.some((despedida) => userSpeech.includes(despedida))) {
         return;
