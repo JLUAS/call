@@ -158,7 +158,13 @@ io.on("connection", (socket) => {
         // Establecer tiempo de vida limitado para el audio (opcional)
         setTimeout(() => audioCache.delete(audioId), 5 * 60 * 1000); // 5 minutos
         enableResponse = true
-      
+        const response = new VoiceResponse
+        response.play(`https://call-t0fi.onrender.com/dynamic-audio/${speechId}`);
+        response.gather({
+          input: "speech",
+          action: "/voice",
+          language: "es-MX",
+        });
         io.emit("message", `Bot speech: ${botResponse}`);
       } catch (error) {
         console.error("Error al generar respuesta:", error);
