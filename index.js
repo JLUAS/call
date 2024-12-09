@@ -157,9 +157,9 @@ io.on("connection", (socket) => {
         speechId = audioId
         // Establecer tiempo de vida limitado para el audio (opcional)
         setTimeout(() => audioCache.delete(audioId), 5 * 60 * 1000); // 5 minutos
-        enableResponse = true
-
-        io.emit("message", `Bot: ${botResponse}`);
+         enableResponse = true
+      
+        io.emit("message", `Bot speech: ${botResponse}`);
       } catch (error) {
         console.error("Error al generar respuesta:", error);
         const response = new VoiceResponse();
@@ -213,6 +213,7 @@ app.post("/voice", async (req, res) => {
   if(startProcess && userSpeech != req.body.SpeechResult){
     userSpeech =req.body.SpeechResult;
     io.emit("process-speech-trigger")
+    enableResponse = true
   }else{
     enableResponse = false
   }
