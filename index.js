@@ -203,7 +203,7 @@ io.on("connection", (socket) => {
 });
 
 // WebSocket actualizando la URL del audio generado
-app.get("/dynamic-audio/:idid", (req, res) => {
+app.get("/dynamic-audio/:id", (req, res) => {
   const audioId = req.params.id;
   const audioBuffer = audioCache.get(audioId);
   if (!audioBuffer) {
