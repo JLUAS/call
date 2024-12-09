@@ -213,6 +213,7 @@ app.post("/voice", async (req, res) => {
   if(startProcess && userSpeech != req.body.SpeechResult){
     userSpeech =req.body.SpeechResult;
     io.emit("process-speech-trigger")
+    enableResponse = true
   }else{
     enableResponse = false
   }
