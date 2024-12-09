@@ -44,6 +44,7 @@ app.use("/public", express.static(publicDir));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 let welcomeUrl = "";
+let welcomeId = ""
 let latestAudioUrl = ""; // Variable global para almacenar la URL del último audio generado
 let startProcess = false;
 let userSpeech = ""
@@ -114,7 +115,7 @@ io.on("connection", (socket) => {
         const audioId = uuidv4(); // Generar un ID único para el audio
         console.log("Audio id: ", audioId);
         audioCache.set(audioId, audioBuffer); // Almacenar en memoria
-
+        welcomeId = audioId
         // Establecer tiempo de vida limitado para el audio (opcional)
         setTimeout(() => audioCache.delete(audioId), 5 * 60 * 1000); // 5 minutos
 
@@ -202,7 +203,15 @@ io.on("connection", (socket) => {
 });
 
 // WebSocket actualizando la URL del audio generado
-
+app.get("/dynamic-audio/:idid", (req, res) => {
+  const audioId = req.params.id;
+  const audioBuffer = audioCache.get(audioId);
+  if (!audioBuffer) {
+    return res.status(404).send("Audio no encontrado.");
+  }
+  res.setHeader("Content-Type", "audio/mpeg");
+  res.send(audioBuffer);
+})
 app.post("/voice", async (req, res) => {
   const response = new VoiceResponse();
   let enableResponse =false;
@@ -216,7 +225,7 @@ app.post("/voice", async (req, res) => {
     try{
       if(welcome){
         console.log("Welcome voice")
-        response.play(`https://call-t0fi.onrender.com/public/${welcomeUrl}`);
+        response.play(`https://call-t0fi.onrender.com/dynamic-audio/${welcomeId}`);
         response.gather({
           input: "speech",
           action: "/voice",
