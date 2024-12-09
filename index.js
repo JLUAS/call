@@ -157,6 +157,7 @@ io.on("connection", (socket) => {
         fs.writeFileSync(audioFilePath, audioBuffer);
         console.log(`Audio guardado en: ${audioFilePath}`);
         latestAudioUrl = audioFileName
+        io.emit("message", `Bot: ${botResponse}`);
       } catch (error) {
         console.error("Error al generar respuesta:", error);
         const response = new VoiceResponse();
