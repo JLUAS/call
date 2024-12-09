@@ -219,7 +219,7 @@ app.post("/voice", async (req, res) => {
   if(startProcess && userSpeech != req.body.SpeechResult){
     userSpeech =req.body.SpeechResult;
     io.emit("process-speech-trigger")
-    enableResponse = true
+    enableResponse = false
   }else{
     enableResponse = false
   }
@@ -243,19 +243,18 @@ app.post("/voice", async (req, res) => {
           action: "/voice",
           language: "es-MX",
         });
-        if(!enableResponse && !welcome){
-          console.log("Enable")
-          response.play(`https://call-t0fi.onrender.com/dynamic-audio/${welcomeId}`);
-          response.gather({
-            input: "speech",
-            action: "/voice",
-            language: "es-MX",
-          }); 
-        }
-        
-        if (despedidas.some((despedida) => userSpeech.includes(despedida))) {
-          return;
-        }
+      }
+      if(!enableResponse && !welcome){
+        console.log("Enable")
+        response.play(`https://call-t0fi.onrender.com/dynamic-audio/${welcomeId}`);
+        response.gather({
+          input: "speech",
+          action: "/voice",
+          language: "es-MX",
+        }); 
+      }
+      if (despedidas.some((despedida) => userSpeech.includes(despedida))) {
+        return;
       }
     }catch(error){
       console.error("Error al esperar el audio:", error);
