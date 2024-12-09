@@ -211,7 +211,6 @@ app.post("/voice", async (req, res) => {
     try{
       if(welcome){
         console.log("Welcome voice")
-        console.log("Audio: ", welcomeUrl)
         response.play(`https://call-t0fi.onrender.com/public/${welcomeUrl}`);
         response.gather({
           input: "speech",
@@ -222,6 +221,7 @@ app.post("/voice", async (req, res) => {
         welcome = false
       }
       if(startProcess && enableResponse){
+        console.log("Process-speech voice")
         response.play(`https://call-t0fi.onrender.com/public/${latestAudioUrl}`);
         response.gather({
           input: "speech",
