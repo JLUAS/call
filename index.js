@@ -210,6 +210,7 @@ app.post("/voice", async (req, res) => {
   }
     try{
       if(welcome){
+        console.log("Welcome voice")
         response.play(`https://call-t0fi.onrender.com/public/${welcomeUrl}`);
         response.gather({
           input: "speech",
