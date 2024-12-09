@@ -92,7 +92,7 @@ io.on("connection", (socket) => {
         });
     
         botResponse = gptResponse.choices[0].message.content;
-        io.emit("message", `Bot: ${botResponse}`);
+        io.emit("message", `Bot bienvenida: ${botResponse}`);
         console.log(`Respuesta generada por OpenAI: ${botResponse}`);
   
         // 2. Generar el archivo de audio
