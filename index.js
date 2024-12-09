@@ -165,7 +165,6 @@ io.on("connection", (socket) => {
         speechId = audioId
         // Establecer tiempo de vida limitado para el audio (opcional)
         setTimeout(() => audioCache.delete(audioId), 5 * 60 * 1000); // 5 minutos
-        latestAudioUrl = audioFileName
         io.emit("message", `Bot: ${botResponse}`);
       } catch (error) {
         console.error("Error al generar respuesta:", error);
