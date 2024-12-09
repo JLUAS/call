@@ -106,13 +106,7 @@ io.on("connection", (socket) => {
           }),
         ]);
     
-        const audioBuffer = await audioResponse.buffer();
-        const audioFileName = `${uuidv4()}.mp3`;
-        const audioFilePath = path.join(publicDir, audioFileName);
-        fs.writeFileSync(audioFilePath, audioBuffer);
-        console.log(`Audio guardado en: ${audioFilePath}`);
-        console.log("Audio:", audioFileName);
-  
+        const audioBuffer = await audioResponse.buffer();          
         const audioId = uuidv4(); // Generar un ID único para el audio
         console.log("Audio id: ", audioId);
         audioCache.set(audioId, audioBuffer); // Almacenar en memoria
@@ -120,7 +114,6 @@ io.on("connection", (socket) => {
         // Establecer tiempo de vida limitado para el audio (opcional)
         setTimeout(() => audioCache.delete(audioId), 5 * 60 * 1000); // 5 minutos
 
-        welcomeUrl = audioFileName;
       } catch (error) {
         console.error("Error en la generación de la respuesta:", error);
         io.emit("error", { message: "Error al procesar la solicitud." });
@@ -141,8 +134,7 @@ io.on("connection", (socket) => {
           ],
         });
         
-        const botResponse = gptResponse.choices[0].message.content;
-        
+        const botResponse = gptResponse.choices[0].message.content;        
         const [audioResponse] = await Promise.all([
           fetch("https://api.openai.com/v1/audio/speech", {
             method: "POST",
@@ -160,7 +152,7 @@ io.on("connection", (socket) => {
         
         const audioBuffer = await audioResponse.buffer();
         const audioId = uuidv4(); // Generar un ID único para el audio
-
+        console.log("Audio id process: ", audioId);
         audioCache.set(audioId, audioBuffer); // Almacenar en memoria
         speechId = audioId
         // Establecer tiempo de vida limitado para el audio (opcional)
