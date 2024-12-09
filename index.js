@@ -201,7 +201,14 @@ io.on("connection", (socket) => {
 
 app.post("/voice", async (req, res) => {
   const response = new VoiceResponse();
-  if(startProcess) userSpeech =req.body.SpeechResult;
+  let enableResponse =false;
+  if(startProcess && userSpeech != req.body.SpeechResult){
+    enableResponse = true
+    userSpeech =req.body.SpeechResult;
+  }else{
+    enableResponse = false
+  }
+    
   
     try{
       if(welcome){
@@ -218,7 +225,7 @@ app.post("/voice", async (req, res) => {
         startProcess = true
         welcome = false
       }
-      if(startProcess){
+      if(startProcess && enableResponse){
         response.play(`https://call-t0fi.onrender.com/public/${latestAudioUrl}`);
         response.gather({
           input: "speech",
