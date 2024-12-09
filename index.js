@@ -110,6 +110,14 @@ io.on("connection", (socket) => {
         const audioFileName = `${uuidv4()}.mp3`;
         const audioFilePath = path.join(publicDir, audioFileName);
         fs.writeFileSync(audioFilePath, audioBuffer);
+        const response = new VoiceResponse();
+
+        response.play(`https://call-t0fi.onrender.com/public/${welcomeUrl}`);
+        response.gather({
+          input: "speech",
+          action: "/voice",
+          language: "es-MX",
+        });
         console.log(`Audio guardado en: ${audioFilePath}`);
         console.log("Audio:", audioFileName);
   
@@ -210,12 +218,6 @@ app.post("/voice", async (req, res) => {
     try{
       if(welcome){
         console.log("Welcome voice")
-        response.play(`https://call-t0fi.onrender.com/public/${welcomeUrl}`);
-        response.gather({
-          input: "speech",
-          action: "/voice",
-          language: "es-MX",
-        });
         startProcess = true
         welcome = false
       }
