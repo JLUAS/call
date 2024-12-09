@@ -236,7 +236,8 @@ app.post("/voice", async (req, res) => {
           action: "/voice",
           language: "es-MX",
         });
-        if(!enableResponse){
+        if(!enableResponse && !welcome){
+          console.log("Enable")
           response.play(`https://call-t0fi.onrender.com/dynamic-audio/${welcomeId}`);
           response.gather({
             input: "speech",
